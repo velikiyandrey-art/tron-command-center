@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Allbridge x TRON — Command Center</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#ffffff;--card:#f8fafc;--border:#e2e8f0;--primary:#e51937;--primary-light:#c41230;--primary-bg:#fef2f4;--accent:#10b981;--danger:#ef4444;--warning:#f59e0b;--text:#1e293b;--muted:#64748b;--surface:#f1f5f9;--tron-red:#e51937;--tron-dark:#1a1a2e;--sidebar-w:240px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+.sidebar{position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;background:var(--tron-dark);overflow-y:auto;z-index:200;padding:0;transition:transform .3s}
+.sidebar-header{padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:10px}
+.sidebar-header .logo{width:32px;height:32px;background:var(--tron-red);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:.85em}
+.sidebar-header div h2{font-size:.9em;color:#fff}
+.sidebar-header div p{font-size:.65em;color:rgba(255,255,255,.4)}
+.sidebar .ns{padding:4px 16px;font-size:.6em;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.25);margin-top:12px}
+.sidebar button{display:block;width:100%;text-align:left;background:none;border:none;color:rgba(255,255,255,.55);padding:8px 20px;cursor:pointer;font-size:.8em;transition:all .15s;border-left:3px solid transparent}
+.sidebar button:hover{background:rgba(255,255,255,.05);color:#fff}
+.sidebar button.active{background:rgba(229,25,55,.15);color:var(--tron-red);border-left-color:var(--tron-red);font-weight:600}
+.hamburger{display:none;position:fixed;top:10px;left:10px;z-index:300;background:var(--tron-red);color:#fff;border:none;border-radius:6px;padding:6px 10px;cursor:pointer;font-size:1em}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:150}
+.main{margin-left:var(--sidebar-w);max-width:1200px;padding:20px 28px}
+.section{display:none}.section.active{display:block}
+h1{font-size:1.3em;margin-bottom:2px}h1 span{color:var(--tron-red)}
+.sub{color:var(--muted);font-size:.8em;margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:12px}
+.card h3{color:var(--primary-light);margin-bottom:8px;font-size:.95em}
+.card p,.card li{font-size:.83em}
+.card ul{padding-left:16px}.card ul li{margin-bottom:3px}
+.alert{border-left:4px solid var(--tron-red);background:var(--primary-bg);border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:12px}
+.alert h4{color:var(--tron-red);font-size:.85em;margin-bottom:2px}
+.alert p{color:#991b1b;font-size:.82em}
+.alert-ok{border-left-color:var(--accent);background:#ecfdf5}
+.alert-ok h4{color:#059669}.alert-ok p{color:#065f46}
+.grid{display:grid;gap:12px;margin-bottom:12px}
+.g4{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.g2{grid-template-columns:repeat(auto-fit,minmax(360px,1fr))}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center}
+.sc .l{color:var(--muted);font-size:.68em;text-transform:uppercase;letter-spacing:.5px}
+.sc h2{font-size:1.4em;margin:2px 0}.sc .c{font-size:.75em}
+.c.down{color:var(--danger)}.c.up{color:var(--accent)}
+.sc.hl{border-color:var(--tron-red);background:var(--primary-bg)}.sc.hl h2{color:var(--tron-red)}
+table{width:100%;border-collapse:collapse;font-size:.82em}
+th,td{padding:6px 10px;text-align:left;border-bottom:1px solid var(--border)}
+th{color:var(--muted);font-weight:600;text-transform:uppercase;font-size:.72em;letter-spacing:.5px;background:var(--surface)}
+.b{display:inline-block;padding:2px 7px;border-radius:10px;font-size:.7em;font-weight:600}
+.b-h{background:#fee2e2;color:#dc2626}.b-w{background:#fef3c7;color:#d97706}.b-c{background:#d1fae5;color:#059669}.b-n{background:#f1f5f9;color:#64748b}
+.tabs{display:flex;gap:2px;margin-bottom:10px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.tabs button{background:none;border:none;color:var(--muted);padding:6px 12px;cursor:pointer;border-bottom:2px solid transparent;font-size:.8em}
+.tabs button.active{color:var(--tron-red);border-bottom-color:var(--tron-red)}
+.stab{display:none}.stab.active{display:block}
+.cl label{display:flex;align-items:flex-start;gap:6px;padding:5px 6px;cursor:pointer;border-radius:4px;font-size:.82em}
+.cl label:hover{background:var(--surface)}
+.cl input[type=checkbox]{margin-top:3px;accent-color:var(--tron-red)}
+.cl .done{text-decoration:line-through;color:var(--muted)}
+.pb{width:100%;height:6px;background:var(--surface);border-radius:3px;overflow:hidden;margin:6px 0}
+.pb .f{height:100%;background:var(--tron-red);border-radius:3px;transition:width .3s}
+.cb{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.cb .n{width:100px;font-size:.78em;color:var(--muted);flex-shrink:0}
+.cb .bar{flex:1;height:22px;background:var(--surface);border-radius:4px;overflow:hidden}
+.cb .fl{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:6px;font-size:.68em;font-weight:600;color:#fff}
+.tc{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:10px;cursor:pointer;transition:border-color .2s}
+.tc:hover{border-color:var(--tron-red)}
+.tc .m{font-size:.72em;color:var(--muted);margin-bottom:4px}
+.tc .t{font-size:.83em;white-space:pre-line}
+.cp{background:var(--tron-red);color:#fff;border:none;border-radius:5px;padding:3px 10px;font-size:.72em;cursor:pointer;float:right}
+.cp:hover{background:var(--primary-light)}
+.tl{display:flex;gap:14px;margin-bottom:14px;padding-left:18px;border-left:3px solid var(--border);position:relative}
+.tl::before{content:'';position:absolute;left:-6px;top:3px;width:10px;height:10px;border-radius:50%;background:var(--tron-red)}
+.tl .w{font-size:.72em;color:var(--tron-red);font-weight:700;min-width:60px}
+.tl .ct{font-size:.82em}
+.kg{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:12px}
+.kc{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px}
+.kc .kl{font-size:.68em;text-transform:uppercase;color:var(--muted);letter-spacing:.5px}
+.kc .kv{font-size:1em;font-weight:700}.kc .kt{font-size:.75em;color:var(--tron-red)}
+.kc .kb{width:100%;height:5px;background:var(--surface);border-radius:3px;margin-top:4px}
+.kc .kb .kf{height:100%;background:var(--tron-red);border-radius:3px}
+@media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.sidebar-overlay.open{display:block}.hamburger{display:block}.main{margin-left:0;padding:14px}.g4,.g3,.g2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<button class="hamburger" onclick="tgl()">&#9776;</button>
+<div class="sidebar-overlay" onclick="tgl()"></div>
+<nav class="sidebar">
+<div class="sidebar-header"><div class="logo">T</div><div><h2>Allbridge x TRON</h2><p>Command Center</p></div></div>
+<div class="ns">Strategy</div>
+<button class="active" onclick="go('dash',this)">Dashboard</button>
+<button onclick="go('comp',this)">Competitors</button>
+<button onclick="go('seo',this)">SEO Targets</button>
+<button onclick="go('trends',this)">Hot Trends</button>
+<div class="ns">Targets</div>
+<button onclick="go('accounts',this)">Twitter Accounts</button>
+<button onclick="go('projects',this)">Ecosystem</button>
+<div class="ns">Content</div>
+<button onclick="go('tweets',this)">Tweet Drafts</button>
+<button onclick="go('blog',this)">Blog Plan</button>
+<button onclick="go('forum',this)">Forum & TBL</button>
+<div class="ns">Outreach</div>
+<button onclick="go('shillers',this)">Shillers Playbook</button>
+<button onclick="go('smm',this)">SMM Guide</button>
+<button onclick="go('ama',this)">AMA / Spaces</button>
+<div class="ns">Build</div>
+<button onclick="go('devfund',this)">Dev Ideas (Fundable)</button>
+<div class="ns">Pitch</div>
+<button onclick="go('onepager',this)">TRON Foundation Pitch</button>
+<div class="ns">Execution</div>
+<button onclick="go('cal',this)">Calendar</button>
+<button onclick="go('track',this)">Progress</button>
+</nav>
+
+<div class="main">
+
+<!-- DASHBOARD -->
+<div id="dash" class="section active">
+<h1>Allbridge x <span>TRON</span></h1>
+<p class="sub">Tron = 38% of volume, $1B+ USDT bridged. Zero community presence. Fix it.</p>
+
+<div class="grid g4">
+<div class="sc hl"><div class="l">Our Tron Volume</div><h2>38%</h2><div class="c up">Largest chain</div></div>
+<div class="sc"><div class="l">USDT Bridged to Tron</div><h2>$1B+</h2><div class="c up">All-time</div></div>
+<div class="sc"><div class="l">SEO Top-5 Rankings</div><h2>0</h2><div class="c down">Symbiosis: 12</div></div>
+<div class="sc"><div class="l">Forum Posts</div><h2>0</h2><div class="c down">Competitors: 290+</div></div>
+</div>
+
+<div class="card">
+<h3>Proven Tweet Formula</h3>
+<p><strong style="color:var(--tron-red)">TAG @trondao + SHARE A NUMBER + RIDE A NARRATIVE = 10-25x reach</strong></p>
+<p style="margin-top:6px">Best tweet: "fee reduction + @trondao" = 12.2K views. Worst: "cool tron rules" = 85 views.</p>
+</div>
+
+<div class="grid g3">
+<div class="alert"><h4>Apply to TBL Today</h4><p>$10M fund. Cross-Chain track has ZERO bridges. Rolling admissions. forum.trondao.org/c/tbl/51</p></div>
+<div class="alert"><h4>Contact Dave Uhryniak</h4><p>@UhryniakDave — TRON DAO ecosystem dev director. Gatekeeper for TBL, Spaces, co-marketing.</p></div>
+<div class="alert"><h4>@avelykyy: Start Posting</h4><p>Founder has 2 Tron tweets ever. Must become 1/week minimum. 38% of volume deserves founder voice.</p></div>
+</div>
+</div>
+
+<!-- COMPETITORS -->
+<div id="comp" class="section">
+<h1>Competitor <span>Landscape</span></h1>
+<p class="sub">How users get USDT on Tron + bridge ecosystem depth</p>
+
+<div class="card">
+<h3>User Paths to Tron</h3>
+<div class="grid g3" style="margin-bottom:0">
+<div class="sc"><div class="l">~80% of users</div><h2>CEX</h2><div class="c">~$1 fee, KYC req'd</div></div>
+<div class="sc"><div class="l">Growing (EM)</div><h2>Fiat On-Ramp</h2><div class="c">MoonPay, Transak, Changelly</div></div>
+<div class="sc"><div class="l">DeFi users</div><h2>Bridge</h2><div class="c">No KYC, self-sovereign</div></div>
+</div>
+</div>
+
+<div class="card">
+<h3>Fee Comparison: $10K USDT to Tron</h3>
+<div class="cb"><span class="n">Rubic</span><div class="bar"><div class="fl" style="width:3%;background:#8b5cf6">FREE</div></div></div>
+<div class="cb"><span class="n">CEX / deBridge</span><div class="bar"><div class="fl" style="width:8%;background:#3b82f6">~$1</div></div></div>
+<div class="cb"><span class="n">Stargate</span><div class="bar"><div class="fl" style="width:8%;background:#10b981">$6 (0.06%)</div></div></div>
+<div class="cb"><span class="n">Rhino.fi</span><div class="bar"><div class="fl" style="width:12%;background:#06b6d4">$10 (0.1%)</div></div></div>
+<div class="cb"><span class="n">Defiway</span><div class="bar"><div class="fl" style="width:22%;background:#a855f7">$20 (0.2%)</div></div></div>
+<div class="cb"><span class="n" style="color:var(--tron-red);font-weight:700">Allbridge</span><div class="bar"><div class="fl" style="width:32%;background:var(--tron-red)">$30 (0.3%)</div></div></div>
+<div class="cb"><span class="n">Symbiosis</span><div class="bar"><div class="fl" style="width:40%;background:#64748b">~$37 (0.375%)</div></div></div>
+<p style="font-size:.78em;color:var(--muted);margin-top:6px">Not cheapest — differentiate on non-EVM coverage, route diversity, LP positive slippage on large transfers.</p>
+</div>
+
+<div class="card">
+<h3>Bridge Ecosystem Depth</h3>
+<table>
+<tr><th>Bridge</th><th>Fee</th><th>TBL</th><th>@trondao Featured</th><th>Tron SEO</th><th>Depth</th></tr>
+<tr><td><strong>Symbiosis</strong></td><td>~0.375%</td><td>No</td><td>Energy grant</td><td>12 top-5, 2 blogs, 2 pages</td><td><span class="b b-h">DEEP</span></td></tr>
+<tr><td><strong>Squid/Coral</strong></td><td>-</td><td><strong>Yes</strong></td><td>In TBL</td><td>None</td><td><span class="b b-w">MOD-HIGH</span></td></tr>
+<tr><td><strong>deBridge</strong></td><td>4 TRX flat</td><td>No</td><td>Aug 2025 featured</td><td>1 guide</td><td><span class="b b-w">MOD-HIGH</span></td></tr>
+<tr><td><strong>Stargate</strong></td><td>0.06%</td><td>No</td><td>TRUMP/PYUSD featured</td><td>None</td><td><span class="b b-c">MODERATE</span></td></tr>
+<tr><td><strong>Rhino.fi</strong></td><td>0.1%+gas</td><td>No</td><td>Deposit addresses featured</td><td>4 top-5</td><td><span class="b b-c">MODERATE</span></td></tr>
+<tr><td><strong>VIA Labs</strong></td><td>-</td><td><strong>Yes</strong></td><td>In TBL</td><td>None</td><td><span class="b b-c">MODERATE</span></td></tr>
+<tr><td><strong>Defiway</strong></td><td>0.2%</td><td>No</td><td>None</td><td>#1 "best Tron bridges"</td><td><span class="b b-n">LOW-MOD</span></td></tr>
+<tr style="background:var(--primary-bg)"><td><strong>Allbridge</strong></td><td>0.3%</td><td><strong>No</strong></td><td>ATB 27 (2023), Aug 2025</td><td>0 top-5</td><td><span class="b b-h">GAP</span></td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>How They Got TronDAO Recognition (Replicate This)</h3>
+<table>
+<tr><th>Bridge</th><th>Action</th><th>TronDAO Response</th></tr>
+<tr><td>Symbiosis</td><td>Covered Tron Energy fees for users</td><td>Energy grant + frequent mentions</td></tr>
+<tr><td>deBridge</td><td>Big launch PR (BeInCrypto, The Block)</td><td>Featured in "New Integrations" thread</td></tr>
+<tr><td>Rhino.fi</td><td>Launched deposit addresses on Tron</td><td>Direct @trondao tweet about them</td></tr>
+<tr><td>VIA Labs</td><td>Applied to TBL, posted updates</td><td>Accepted into $10M program</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>Wallet-Native Bridges (Distribution Threat)</h3>
+<table>
+<tr><th>Wallet</th><th>Tron Bridge</th><th>Threat</th></tr>
+<tr><td><strong>MetaMask</strong></td><td>Native Tron + Crosschain Swaps (Jan 2026)</td><td><span class="b b-h">HIGH</span></td></tr>
+<tr><td><strong>OKX Web3</strong></td><td>Built-in aggregator finds best bridge</td><td><span class="b b-w">MED</span></td></tr>
+<tr><td><strong>Bitget Wallet</strong></td><td>Send USDT without TRX</td><td><span class="b b-w">MED</span></td></tr>
+</table>
+</div>
+</div>
+
+<!-- SEO -->
+<div id="seo" class="section">
+<h1>SEO <span>Targets</span></h1>
+<p class="sub">Keyword opportunities — ranked by competition weakness</p>
+
+<div class="card">
+<table>
+<tr><th>Keyword</th><th>Our Rank</th><th>#1 Result</th><th>Competition</th><th>Action</th></tr>
+<tr><td>"cheapest way to send USDT to Tron"</td><td><span class="b b-h">None</span></td><td>imToken help article</td><td><span class="b b-c">Very weak</span></td><td>Cost comparison blog</td></tr>
+<tr><td>"Tron stablecoin bridge"</td><td>~#7</td><td>Rubic</td><td><span class="b b-c">Very weak</span></td><td>Landing page</td></tr>
+<tr><td>"send USDT from Ethereum to Tron"</td><td>~#8</td><td>Defiway</td><td><span class="b b-c">Weak</span></td><td>Tutorial blog</td></tr>
+<tr><td>"bridge USDT to Tron"</td><td><span class="b b-h">None</span></td><td>Defiway</td><td><span class="b b-w">Moderate</span></td><td>Landing page + guide</td></tr>
+<tr><td>"best Tron bridge 2026"</td><td><span class="b b-h">None</span></td><td>Defiway blog</td><td><span class="b b-w">Moderate</span></td><td>Comparison blog</td></tr>
+<tr><td>"how to bridge to Tron"</td><td><span class="b b-h">None</span></td><td>Symbiosis</td><td><span class="b b-w">Moderate</span></td><td>Step-by-step guide</td></tr>
+<tr><td>"USDT TRC-20 bridge"</td><td>~#10</td><td>Symbiosis</td><td><span class="b b-h">High</span></td><td>Token-pair pages</td></tr>
+<tr><td>"Tron bridge"</td><td>~#10</td><td>Symbiosis</td><td><span class="b b-h">High</span></td><td>/bridge/tron page</td></tr>
+</table>
+</div>
+
+<div class="alert-ok alert"><h4>Symbiosis's Winning SEO Strategy</h4><p>Dedicated /bridge-tron page + individual pages per token pair (usdt-trc20, usdt-trc20/erc20, usdt-trc20/bep20). Programmatic pages = 12 top-5 rankings. Replicate this with route pages.</p></div>
+</div>
+
+<!-- TRENDS -->
+<div id="trends" class="section">
+<h1>Hot <span>Trends</span> (April 2026)</h1>
+<p class="sub">Current Tron narratives to ride with content</p>
+
+<div class="card">
+<table>
+<tr><th>Trend</th><th>Heat</th><th>Our Angle</th><th>Content Idea</th></tr>
+<tr><td>Agentic AI Payments ($1B fund)</td><td><span class="b b-h">HOT</span></td><td>AI agents need cross-chain bridges</td><td>"Missing Piece in AI Payments: Cross-Chain"</td></tr>
+<tr><td>Stablecoin War ($85.4B USDT ATH)</td><td><span class="b b-h">HOT</span></td><td>We see flows firsthand</td><td>Weekly Stablecoin Flow Reports</td></tr>
+<tr><td>Institutional Access (Anchorage, Mastercard)</td><td><span class="b b-h">HOT</span></td><td>Institutions need bridges</td><td>"Institutions Are Coming to Tron"</td></tr>
+<tr><td>SEC Case Dismissed</td><td><span class="b b-w">WARM</span></td><td>Regulatory clarity = more DeFi</td><td>Compliance-focused bridge content</td></tr>
+<tr><td>MetaMask Native Tron</td><td><span class="b b-w">WARM</span></td><td>MetaMask users need bridges</td><td>"Bridge USDT to Tron via MetaMask"</td></tr>
+<tr><td>USDD 2.0 (20% APY)</td><td><span class="b b-w">WARM</span></td><td>Bridge + earn flow</td><td>"Bridge to Tron, Earn 20%"</td></tr>
+<tr><td>USD1 on Tron</td><td><span class="b b-w">WARM</span></td><td>Multi-chain stablecoin</td><td>Track USD1 flows</td></tr>
+<tr><td>SunX / SunPump</td><td><span class="b b-c">MED</span></td><td>Traders need to bridge in</td><td>"Get USDT to Tron for SunX/SunPump"</td></tr>
+</table>
+</div>
+</div>
+
+<!-- TARGET ACCOUNTS -->
+<div id="accounts" class="section">
+<h1>Target <span>Accounts</span></h1>
+<p class="sub">Who to follow, tag, and build relationships with</p>
+
+<div class="card">
+<h3>Tier 1 — Tag in Every Tron Post</h3>
+<table>
+<tr><th>Handle</th><th>Followers</th><th>Status</th></tr>
+<tr><td><strong>@trondao</strong></td><td>3M+</td><td>ATB 27 in 2023, dormant since. Publishes monthly "New Integrations" threads.</td></tr>
+<tr><td><strong>@justinsuntron</strong></td><td>3.9M</td><td>Never mentioned Allbridge. Create data he can cite. Path: via Dave Uhryniak.</td></tr>
+<tr><td><strong>@TRONSCAN_ORG</strong></td><td>~200K</td><td>Posts milestones. Good for data-driven engagement.</td></tr>
+</table>
+</div>
+<div class="card">
+<h3>Tier 2 — Engage Weekly</h3>
+<table>
+<tr><th>Handle</th><th>Role</th><th>Angle</th></tr>
+<tr><td>@defi_sunio</td><td>SUN.io/SunSwap ($922M TVL)</td><td>Bridge + Swap flow</td></tr>
+<tr><td>@DeFi_JUST</td><td>JustLend ($6.4B TVL)</td><td>Bridge + Lend flow</td></tr>
+<tr><td>@sunpumpmeme</td><td>Meme launchpad (257K followers)</td><td>Retail bridge demand</td></tr>
+<tr><td>@TronLinkWallet</td><td>Leading wallet (10M users)</td><td>Wallet integration</td></tr>
+<tr><td>@htx_global</td><td>HTX exchange (2M+)</td><td>CEX complement</td></tr>
+</table>
+</div>
+<div class="card">
+<h3>Tier 3 — Media & Outreach</h3>
+<table>
+<tr><th>Handle</th><th>Action</th></tr>
+<tr><td><strong>@UhryniakDave</strong></td><td>TRON DAO ecosystem dev director. #1 outreach target for TBL + Spaces.</td></tr>
+<tr><td>@TronWeekly (~66K)</td><td>Pitch $1B milestone story</td></tr>
+<tr><td>@WinkLink_Oracle</td><td>Request inclusion in weekly "TRON Eco Recap"</td></tr>
+<tr><td>@Defi_Zee</td><td>Request inclusion in weekly Tron analysis</td></tr>
+</table>
+</div>
+</div>
+
+<!-- ECOSYSTEM -->
+<div id="projects" class="section">
+<h1>Ecosystem <span>Projects</span></h1>
+<p class="sub">Partnership targets and DeFi route flows</p>
+
+<div class="card">
+<h3>Top Tron DeFi (Co-Marketing Targets)</h3>
+<table>
+<tr><th>Project</th><th>TVL</th><th>Twitter</th><th>Bridge Angle</th></tr>
+<tr><td><strong>JustLend DAO</strong></td><td>$6.4B</td><td>@DeFi_JUST</td><td>Bridge USDT &rarr; Lend</td></tr>
+<tr><td><strong>SUN.io/SunSwap</strong></td><td>$922M</td><td>@defi_sunio</td><td>Bridge USDT &rarr; Swap to any TRC-20</td></tr>
+<tr><td><strong>stUSDT</strong></td><td>Significant</td><td>@stusdtio</td><td>Bridge USDT &rarr; RWA yield</td></tr>
+<tr><td><strong>USDD 2.0</strong></td><td>Top 6 stablecoin</td><td>-</td><td>Bridge USDT &rarr; 20% APY</td></tr>
+<tr><td><strong>SunPump</strong></td><td>Growing</td><td>@sunpumpmeme</td><td>Bridge for retail meme traders</td></tr>
+<tr><td><strong>SunX</strong></td><td>Active</td><td>-</td><td>Bridge USDT for perp margin</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>Content-Ready DeFi Routes</h3>
+<div style="display:flex;flex-direction:column;gap:6px">
+<div style="padding:8px 12px;background:var(--surface);border-radius:6px;font-size:.82em"><strong>1.</strong> Bridge USDT (any chain) &rarr; TRON &rarr; Lend on JustLend &rarr; Earn yield</div>
+<div style="padding:8px 12px;background:var(--surface);border-radius:6px;font-size:.82em"><strong>2.</strong> Bridge USDT (any chain) &rarr; TRON &rarr; Swap on SunSwap &rarr; Any TRC-20</div>
+<div style="padding:8px 12px;background:var(--surface);border-radius:6px;font-size:.82em"><strong>3.</strong> Bridge USDT (any chain) &rarr; TRON &rarr; USDD 2.0 &rarr; 20% APY</div>
+<div style="padding:8px 12px;background:var(--surface);border-radius:6px;font-size:.82em"><strong>4.</strong> Bridge USDT (any chain) &rarr; TRON &rarr; stUSDT &rarr; RWA yield</div>
+<div style="padding:8px 12px;background:var(--surface);border-radius:6px;font-size:.82em"><strong>5.</strong> Bridge USDT (any chain) &rarr; TRON &rarr; SunX &rarr; Perp trading</div>
+</div>
+</div>
+</div>
+
+<!-- TWEETS -->
+<div id="tweets" class="section">
+<h1>Tweet <span>Drafts</span></h1>
+<p class="sub">Click to copy. All follow: TAG + NUMBER + NARRATIVE</p>
+
+<div class="tabs">
+<button class="active" onclick="st('tweets','pin',this)">Milestone Pin</button>
+<button onclick="st('tweets','founder',this)">@avelykyy</button>
+<button onclick="st('tweets','weekly',this)">Weekly Templates</button>
+<button onclick="st('tweets','react',this)">News Reactions</button>
+<button onclick="st('tweets','reply',this)">Quick Replies</button>
+</div>
+
+<div id="tweets-pin" class="stab active">
+<div class="tc" onclick="cp(this)"><button class="cp">Copy</button><div class="m">@Allbridge_io &middot; 1/5 &middot; PIN THIS</div><div class="t">We've bridged over $1 BILLION in USDT to @trondao through Allbridge Core.
+
+TRON is 38% of our total volume — our biggest chain.
+
+Here's why, and what's next.</div></div>
+<div class="tc" onclick="cp(this)"><button class="cp">Copy</button><div class="m">@Allbridge_io &middot; 2/5</div><div class="t">Why TRON dominates our bridge:
+
+- Cheapest USDT transfers (Energy system > gas fees)
+- Largest USDT supply in crypto ($85B+)
+- Cross-ecosystem routes nobody else offers: Stellar&#8596;TRON, SUI&#8596;TRON, Algorand&#8596;TRON
+
+Our avg transfer: $4,259. Serious capital moves through TRON.</div></div>
+<div class="tc" onclick="cp(this)"><button class="cp">Copy</button><div class="m">@Allbridge_io &middot; 3/5</div><div class="t">Last week alone: $5M+ bridged to TRON through Allbridge Core.
+
+Top routes:
+Ethereum &rarr; TRON
+Solana &rarr; TRON
+BNB Chain &rarr; TRON
+
+One user moved $250K in 40 minutes through 5 consecutive transfers.
+
+The demand is real.</div></div>
+<div class="tc" onclick="cp(this)"><button class="cp">Copy</button><div class="m">@Allbridge_io &middot; 4/5</div><div class="t">What's coming for TRON on Allbridge:
+
+- Deposit addresses on TRON (B2B payment flows)
+- Route optimizer: auto-picks cheapest path (LP pool vs CCTP vs OFT)
+- One-click bridge + DEX swap (USDT &rarr; any TRC-20 token)
+- Weekly stablecoin flow reports</div></div>
+<div class="tc" onclick="cp(this)"><button class="cp">Copy</button><div class="m">@Allbridge_io &middot; 5/5</div><div class="t">We've been building on TRON since 2021 — before most bridges considered non-EVM chains.
+
+TRON isn't just another chain for us. It's home.
+
+Stop Bridging. Start Routing.
+
+core.allbridge.io
+
+@trondao @justinsuntron #TRON #AllbridgeCore</div></div>
+</div>
+
+<div id="tweets-founder" class="stab">
+<div class="tc" onclick="cp(this)"><button class="cp">Copy</button><div class="m">@avelykyy &middot; 1/4</div><div class="t">38% of @Allbridge_io volume is on TRON.
+
+I never planned it that way. Here's what happened:</div></div>
+<div class="tc" onclick="cp(this)"><button class="cp">Copy</button><div class="m">@avelykyy &middot; 2/4</div><div class="t">When we launched in 2021, everyone told us: "just do EVM."
+
+We said no. We added TRON, Solana, Stellar — chains where people actually move stablecoins.
+
+TRON users showed up and never left. $4K average transfers. Week after week.</div></div>
+<div class="tc" onclick="cp(this)"><button class="cp">Copy</button><div class="m">@avelykyy &middot; 3/4</div><div class="t">The data is clear:
+
+- TRON holds $85B+ in USDT — more than Ethereum
+- Our TRON pool is consistently the deepest
+- Cross-ecosystem routes (TRON&#8596;Stellar, TRON&#8596;SUI) have zero competition
+
+When your biggest chain isn't the "cool" one, you know the demand is real.</div></div>
+<div class="tc" onclick="cp(this)"><button class="cp">Copy</button><div class="m">@avelykyy &middot; 4/4</div><div class="t">So yeah — we're TRON guys now.
+
+Joining @trondao Builders League. Posting weekly TRON data. Building deposit addresses for TRON.
+
+If you're building on TRON and need cross-chain infrastructure, DM me.
+
+@trondao @justinsuntron</div></div>
+</div>
+
+<div id="tweets-weekly" class="stab">
+<div class="tc" onclick="cp(this)"><button class="cp">Copy</button><div class="m">Monday — Data Post</div><div class="t">Last week on @trondao through Allbridge Core:
+
+- $[X]M bridged
+- [X] transfers
+- Top route: [Chain] &rarr; TRON
+- Avg transfer: $[X]
+
+TRON stablecoin flows keep growing.
+
+#TRON #AllbridgeCore</div></div>
+<div class="tc" onclick="cp(this)"><button class="cp">Copy</button><div class="m">Tuesday — AI Narrative</div><div class="t">AI agents will need to move stablecoins across chains autonomously.
+
+TRON holds $85B+ in USDT — the largest stablecoin pool in crypto.
+
+Any AI payment system that ignores TRON is ignoring where the money actually lives.
+
+@trondao is building the rails. We're building the bridges.
+
+#TRON #AgenticAI</div></div>
+<div class="tc" onclick="cp(this)"><button class="cp">Copy</button><div class="m">Tuesday — Energy System</div><div class="t">Why bridging USDT to TRON saves you money:
+
+On Ethereum: you pay gas (variable, often $5-50)
+On TRON: you use Energy (predictable, often &lt;$1)
+
+Bridge via Allbridge Core &rarr; receive USDT on TRON &rarr; save on every future transfer.
+
+@trondao #TRON</div></div>
+<div class="tc" onclick="cp(this)"><button class="cp">Copy</button><div class="m">Thursday — @avelykyy Hot Take</div><div class="t">Unpopular opinion: TRON is the most underrated DeFi ecosystem.
+
+$85B in USDT. $24B TVL. 372M accounts. 2.6M active addresses.
+
+But crypto Twitter barely talks about it.
+
+Meanwhile, 38% of our bridge volume is TRON. The market speaks louder than the timeline.</div></div>
+<div class="tc" onclick="cp(this)"><button class="cp">Copy</button><div class="m">Friday — Whale Story</div><div class="t">One TRON wallet. Five transfers. $250K total. 40 minutes.
+
+This is what our bridge sees every day. Real capital. Real users. Real demand.
+
+We don't need to convince anyone TRON matters. The data does it for us.
+
+@trondao #AllbridgeCore</div></div>
+<div class="tc" onclick="cp(this)"><button class="cp">Copy</button><div class="m">Friday — Profit Angle</div><div class="t">How many bridges actually make you money on a transfer?
+
+Real example:
+Sent: 163,770 USDT (TRON)
+Received: 164,363 USDT (BNB Chain)
+
++$593 PROFIT on the bridge.
+
+Our LP pools sometimes create positive slippage. Rare, but it happens.
+
+core.allbridge.io @trondao</div></div>
+</div>
+
+<div id="tweets-react" class="stab">
+<div class="tc" onclick="cp(this)"><button class="cp">Copy</button><div class="m">When @trondao posts a milestone</div><div class="t">[QT the @trondao post]
+
+We see this in our data too.
+
+Last month: $[X]M bridged to TRON through Allbridge Core.
+
+The demand for cross-chain USDT to TRON is accelerating.</div></div>
+<div class="tc" onclick="cp(this)"><button class="cp">Copy</button><div class="m">When @justinsuntron posts about stablecoins</div><div class="t">[QT the post]
+
+We've bridged $1B+ USDT to TRON.
+
+The stablecoin migration to TRON is real — and we have the cross-chain data to prove it.
+
+@trondao</div></div>
+<div class="tc" onclick="cp(this)"><button class="cp">Copy</button><div class="m">When a competitor adds Tron</div><div class="t">Welcome to the party.
+
+We've been bridging to @trondao since 2021. $1B+ USDT and counting.
+
+The more bridges support TRON, the stronger the ecosystem.</div></div>
+</div>
+
+<div id="tweets-reply" class="stab">
+<div class="tc" onclick="cp(this)"><button class="cp">Copy</button><div class="m">"How to bridge to TRON?"</div><div class="t">You can bridge USDT to TRON in under a minute via Allbridge Core (core.allbridge.io). Non-custodial, native TRC-20 USDT. We've handled $1B+ to TRON.</div></div>
+<div class="tc" onclick="cp(this)"><button class="cp">Copy</button><div class="m">Bridge comparison thread</div><div class="t">We specialize in stablecoin routing to non-EVM chains like TRON. 38% of our volume is TRON — it's our biggest chain. Happy to compare specifics!</div></div>
+<div class="tc" onclick="cp(this)"><button class="cp">Copy</button><div class="m">TRON USDT milestone tweet</div><div class="t">We see this growth firsthand — TRON is consistently our highest-volume chain at 38% of total bridge volume. The demand for cross-chain USDT to TRON is real.</div></div>
+</div>
+</div>
+
+<!-- BLOG -->
+<div id="blog" class="section">
+<h1>Blog <span>Plan</span></h1>
+<p class="sub">7 articles targeting Tron SEO gaps</p>
+<div class="card">
+<table>
+<tr><th>#</th><th>Title</th><th>Target Keywords</th><th>Competition</th><th>Week</th><th>Status</th></tr>
+<tr><td>1</td><td>How to Bridge USDT to Tron: Complete Guide</td><td>"bridge USDT to Tron"</td><td><span class="b b-c">Weak</span></td><td>2</td><td><span class="b b-w">Draft ready</span></td></tr>
+<tr><td>2</td><td>Cheapest Way to Bridge USDT to Tron</td><td>"cheapest way to send USDT to Tron"</td><td><span class="b b-c">Very weak</span></td><td>3</td><td><span class="b b-n">Planned</span></td></tr>
+<tr><td>3</td><td>Best Tron Bridges 2026: Comparison</td><td>"best Tron bridge 2026"</td><td><span class="b b-w">Moderate</span></td><td>4</td><td><span class="b b-n">Planned</span></td></tr>
+<tr><td>4</td><td>Bridge to Tron, Earn Yield: DeFi Routes</td><td>"Tron DeFi guide"</td><td><span class="b b-c">Weak</span></td><td>6</td><td><span class="b b-n">Planned</span></td></tr>
+<tr><td>5</td><td>Stablecoin Flow Report Q1 2026</td><td>GEO optimization</td><td><span class="b b-c">Weak</span></td><td>7</td><td><span class="b b-n">Planned</span></td></tr>
+<tr><td>6</td><td>TRON Energy System Explained</td><td>"Tron fees"</td><td><span class="b b-w">Moderate</span></td><td>9</td><td><span class="b b-n">Planned</span></td></tr>
+<tr><td>7</td><td>AI Agents + Cross-Chain Stablecoins</td><td>"AI crypto payments"</td><td><span class="b b-c">Weak</span></td><td>10</td><td><span class="b b-n">Planned</span></td></tr>
+</table>
+</div>
+<div class="card">
+<h3>Landing Pages to Create</h3>
+<ul>
+<li><strong>core.allbridge.io/bridge/tron</strong> — Dedicated Tron bridge page (Symbiosis has /bridge-tron = #1 for multiple queries)</li>
+<li><strong>50+ programmatic route pages</strong> — Ethereum&rarr;Tron, Solana&rarr;Tron, Base&rarr;Tron, etc. (per token pair like Symbiosis)</li>
+</ul>
+</div>
+</div>
+
+<!-- FORUM & TBL -->
+<div id="forum" class="section">
+<h1>Forum & <span>TBL</span></h1>
+<p class="sub">TronDAO Forum + TRON Builders League ($10M fund)</p>
+
+<div class="alert"><h4>TBL: Cross-Chain Track Has ZERO Bridges</h4><p>$10M incubator. 8 tracks. Rolling admissions. Apply at forum.trondao.org/c/tbl/51. Get: funding, mentorship, integration support, investor access, @trondao marketing.</p></div>
+
+<div class="card">
+<h3>Forum Post Pipeline</h3>
+<table>
+<tr><th>Week</th><th>Post</th><th>Category</th></tr>
+<tr><td>1</td><td>"$1B+ USDT Bridged to TRON" — Introduction</td><td>TRON Discussion</td></tr>
+<tr><td>1</td><td>TBL Application (Cross-Chain track)</td><td>TBL (c/tbl/51)</td></tr>
+<tr><td>2</td><td>Developer Guide: Cross-Chain USDT on TRON</td><td>Dev Talks</td></tr>
+<tr><td>3</td><td>Bridge Economics: LP vs CCTP vs OFT</td><td>TRON Discussion</td></tr>
+<tr><td>4</td><td>Q1 Stablecoin Flow Data Report</td><td>TRON Discussion</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>Forum Power Users to Engage</h3>
+<table>
+<tr><th>Username</th><th>Activity</th></tr>
+<tr><td><strong>Gordian</strong></td><td>Extremely active — TBL feedback, cross-chain, project reviews</td></tr>
+<tr><td><strong>HODL</strong></td><td>Active — TBL, community discussions</td></tr>
+<tr><td><strong>manfred_jr</strong></td><td>Active — project reviews, cross-chain topics</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>Also Apply: TRON Ecosystem Fund ($1B)</h3>
+<p>trondao.org/ecosystem-fund/ — $100M+/year, milestone-based grants paid in USDD. 1-2 week review. Allbridge qualifies with working product + existing Tron volume.</p>
+</div>
+</div>
+
+<!-- SMM GUIDE -->
+<div id="smm" class="section">
+<h1>SMM <span>Guide</span></h1>
+<p class="sub">For @Allbridge_io account manager. Twitter + Reddit + TronDAO Forum — what to post, when, and where.</p>
+
+<div class="alert"><h4>Core Formula (Proven by Data)</h4><p>TAG @trondao + SHARE A NUMBER + RIDE A NARRATIVE = 10-25x reach. Best tweet got 12.2K views (fee reduction + @trondao tag). Worst: 85 views (no tag, no data). ALWAYS tag @trondao. ALWAYS include a number.</p></div>
+
+<div class="tabs">
+<button class="active" onclick="st('smm','twitter',this)">Twitter Plan</button>
+<button onclick="st('smm','reddit',this)">Reddit Plan</button>
+<button onclick="st('smm','forum',this)">Forum Plan</button>
+<button onclick="st('smm','engage',this)">Engagement Targets</button>
+<button onclick="st('smm','trends',this)">Trend Calendar</button>
+</div>
+
+<div id="smm-twitter" class="stab active">
+<div class="card">
+<h3>Weekly Twitter Schedule — @Allbridge_io</h3>
+<table>
+<tr><th>Day</th><th>Post Type</th><th>Template</th><th>Tags</th></tr>
+<tr><td><strong>Mon</strong></td><td>📊 Data Post</td><td>"Last week on TRON via Allbridge Core: $[X]M bridged, [X] transfers, top route: [Chain]→TRON, avg: $[X]"</td><td>@trondao #TRON</td></tr>
+<tr><td><strong>Tue</strong></td><td>📚 Educational</td><td>Rotate: Energy system / Route comparison / MetaMask tutorial / CCTP vs OFT explainer</td><td>@trondao + relevant project</td></tr>
+<tr><td><strong>Wed</strong></td><td>🔄 QT / React</td><td>Quote-tweet @trondao or ecosystem news with our data angle</td><td>@trondao</td></tr>
+<tr><td><strong>Thu</strong></td><td>🔥 Trend Ride</td><td>Tie Allbridge to the hottest TRON narrative that week (see Trend Calendar tab)</td><td>@trondao + trend tags</td></tr>
+<tr><td><strong>Fri</strong></td><td>🎯 Story / Proof</td><td>Whale story, positive slippage example, exotic route highlight, or user testimonial</td><td>@trondao #AllbridgeCore</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>Post Ideas Queue — April/May 2026</h3>
+<table>
+<tr><th>#</th><th>Post Idea</th><th>Narrative</th><th>Key Number</th><th>Status</th></tr>
+<tr><td>1</td><td>"$1B+ USDT bridged to TRON" milestone thread (5 tweets)</td><td>Milestone</td><td>$1B+</td><td><span class="b b-h">Post Week 1</span></td></tr>
+<tr><td>2</td><td>Fee reduction announcement + @trondao tag</td><td>Cost savings</td><td>% reduction</td><td><span class="b b-w">Draft</span></td></tr>
+<tr><td>3</td><td>"AI agents need cross-chain rails. TRON has $85B USDT."</td><td>Agentic AI ($1B fund)</td><td>$85B</td><td><span class="b b-w">Draft</span></td></tr>
+<tr><td>4</td><td>"Institutions are coming to TRON" — Anchorage + Mastercard + Zero Hash</td><td>Institutional</td><td>3 institutions</td><td><span class="b b-n">Planned</span></td></tr>
+<tr><td>5</td><td>Route highlight: Stellar→TRON ("nobody else offers this")</td><td>Unique routes</td><td>6 non-EVM chains</td><td><span class="b b-n">Planned</span></td></tr>
+<tr><td>6</td><td>"Bridge to TRON, earn 20% on USDD 2.0" flow tweet</td><td>USDD 2.0 yield</td><td>20% APY</td><td><span class="b b-n">Planned</span></td></tr>
+<tr><td>7</td><td>Positive slippage example: "Sent 163K, received 164K"</td><td>Profit angle</td><td>+$593</td><td><span class="b b-n">Planned</span></td></tr>
+<tr><td>8</td><td>"MetaMask now supports TRON — here's how to bridge"</td><td>MetaMask native</td><td>30 seconds</td><td><span class="b b-n">Planned</span></td></tr>
+<tr><td>9</td><td>Weekly stablecoin flow report (first edition)</td><td>Data authority</td><td>$[X]M weekly</td><td><span class="b b-n">Week 3</span></td></tr>
+<tr><td>10</td><td>"TBL accepted!" announcement (when it happens)</td><td>Ecosystem cred</td><td>$10M program</td><td><span class="b b-n">Pending TBL</span></td></tr>
+<tr><td>11</td><td>Comparison thread: Allbridge vs CEX vs other bridges to TRON</td><td>Education</td><td>Fee table</td><td><span class="b b-n">Week 4</span></td></tr>
+<tr><td>12</td><td>"38% of our volume is TRON — here's what the data says about Q1"</td><td>Data thread</td><td>38%, Q1 numbers</td><td><span class="b b-n">Week 5</span></td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>Thread Formats That Work</h3>
+<ul>
+<li><strong>Data Thread (3-5 tweets):</strong> Hook with big number → break down the data → what it means → CTA</li>
+<li><strong>Story Thread (3-4 tweets):</strong> "One wallet. Five transfers. $250K." → details → lesson → CTA</li>
+<li><strong>Comparison Thread (4-5 tweets):</strong> Problem → show options with numbers → why we're different → CTA</li>
+<li><strong>News React (1-2 tweets):</strong> QT ecosystem news → add our data angle → tag @trondao</li>
+</ul>
+</div>
+</div>
+
+<div id="smm-reddit" class="stab">
+<div class="card">
+<h3>Reddit Strategy — Subreddits & Post Plan</h3>
+<table>
+<tr><th>Subreddit</th><th>Size</th><th>Rules</th><th>Post Frequency</th><th>Content Type</th></tr>
+<tr><td><strong>r/Tronix</strong></td><td>~95K</td><td>Pro-TRON. Self-promo OK if valuable.</td><td>2x/month</td><td>Data reports, guides, milestone announcements</td></tr>
+<tr><td><strong>r/defi</strong></td><td>~250K</td><td>No shilling. Educational content OK.</td><td>2x/month</td><td>Bridge comparison guides, yield strategies</td></tr>
+<tr><td><strong>r/cryptocurrency</strong></td><td>7M+</td><td>Strict no-promo. Comments only.</td><td>Comment in TRON threads</td><td>Helpful answers mentioning Allbridge naturally</td></tr>
+<tr><td><strong>r/tron</strong></td><td>Smaller</td><td>Less moderated</td><td>1x/month</td><td>Cross-post from r/Tronix</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>Reddit Post Ideas (Ready to Adapt)</h3>
+<table>
+<tr><th>#</th><th>Subreddit</th><th>Title</th><th>Type</th><th>Week</th></tr>
+<tr><td>1</td><td>r/Tronix</td><td>"We've bridged $1B+ USDT to TRON — AMA about cross-chain stablecoin flows"</td><td>AMA / Milestone</td><td>1-2</td></tr>
+<tr><td>2</td><td>r/defi</td><td>"Cheapest ways to bridge USDT to TRON in 2026 — full comparison with fees"</td><td>Guide</td><td>2-3</td></tr>
+<tr><td>3</td><td>r/Tronix</td><td>"Cross-chain stablecoin flows to TRON: Q1 2026 data from a bridge operator"</td><td>Data / OC</td><td>4</td></tr>
+<tr><td>4</td><td>r/defi</td><td>"Bridge USDT to TRON → Lend on JustLend → Earn yield: step-by-step"</td><td>Tutorial</td><td>6</td></tr>
+<tr><td>5</td><td>r/Tronix</td><td>"Stellar↔TRON, SUI↔TRON — bridging non-EVM to non-EVM, how it works"</td><td>Technical</td><td>7</td></tr>
+<tr><td>6</td><td>r/defi</td><td>"Why AI payment agents will need cross-chain bridges to TRON"</td><td>Discussion</td><td>8</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>Reddit Comment Templates</h3>
+<p style="font-size:.78em;color:var(--muted);margin-bottom:8px">Use in relevant threads. Sound like a helpful community member, not a marketer.</p>
+<div class="tc" onclick="cp(this)" style="margin-bottom:6px"><button class="cp">Copy</button><div class="m">When someone asks about bridging to TRON</div><div class="t">I work at Allbridge — we've bridged $1B+ USDT to TRON so slightly biased, but here are all the options:
+
+CEX withdrawal: Cheapest (~$1 via Binance/KuCoin), but requires KYC and you need an account.
+
+Non-custodial bridges:
+- Allbridge Core: ~0.3%, supports 17 chains including exotic routes (Stellar→TRON, SUI→TRON)
+- deBridge: ~4 TRX flat fee, fast
+- Rhino.fi: cheap for small amounts
+
+For most people, CEX withdrawal is easiest. For non-custodial or if you're coming from a non-EVM chain, that's where bridges shine.</div></div>
+<div class="tc" onclick="cp(this)"><button class="cp">Copy</button><div class="m">When someone discusses TRON DeFi / ecosystem</div><div class="t">Interesting data point: we operate a cross-chain bridge and TRON is 38% of our total volume — more than Ethereum or Solana. Average transfer is ~$4K.
+
+The demand is real and it's institutional-grade capital, not just retail. The Energy system keeping fees low is a massive advantage for stablecoin transfers.</div></div>
+</div>
+</div>
+
+<div id="smm-forum" class="stab">
+<div class="card">
+<h3>TronDAO Forum Strategy</h3>
+<p style="font-size:.78em;color:var(--muted);margin-bottom:8px">forum.trondao.org — Post under real Allbridge account. Build reputation through consistent, valuable contributions.</p>
+<table>
+<tr><th>Week</th><th>Post Title</th><th>Category</th><th>Goal</th></tr>
+<tr><td>1</td><td>"Allbridge Core: $1B+ USDT Bridged to TRON" (intro)</td><td>TRON Discussion</td><td>Establish presence</td></tr>
+<tr><td>1</td><td>TBL Application — Cross-Chain track</td><td>TBL (c/tbl/51)</td><td>Get into $10M program</td></tr>
+<tr><td>2</td><td>"Developer Guide: Integrating Cross-Chain USDT on TRON"</td><td>Dev Talks</td><td>Developer credibility</td></tr>
+<tr><td>3</td><td>"Bridge Economics: LP Pool vs CCTP vs OFT — How We Route"</td><td>TRON Discussion</td><td>Technical authority</td></tr>
+<tr><td>4</td><td>"Q1 2026 Cross-Chain Stablecoin Flow Report for TRON"</td><td>TRON Discussion</td><td>Data authority</td></tr>
+<tr><td>6</td><td>"How AI Agents Will Move Stablecoins on TRON"</td><td>TRON Discussion</td><td>Ride AI narrative</td></tr>
+<tr><td>8</td><td>"TBL Progress Update: Month 1" (if accepted)</td><td>TBL</td><td>Show activity</td></tr>
+<tr><td>10</td><td>"The Full TRON DeFi Stack: Bridge → Swap → Lend → Earn"</td><td>TRON Discussion</td><td>Ecosystem integration</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>Forum Engagement Rules</h3>
+<ul>
+<li><strong>Reply to 3-5 threads per week</strong> — especially in Cross-Chain and TBL categories</li>
+<li><strong>Engage with power users:</strong> Gordian, HODL, manfred_jr — they're active reviewers</li>
+<li><strong>Always add value:</strong> share data, technical insights, or helpful answers — never pure promo</li>
+<li><strong>Reply to every comment on our posts</strong> within 24 hours</li>
+<li><strong>Cross-reference:</strong> link forum posts in tweets and vice versa for traffic loop</li>
+<li><strong>TBL updates:</strong> if accepted, post monthly progress updates with metrics (required by program)</li>
+</ul>
+</div>
+
+<div class="card">
+<h3>Forum Reply Templates</h3>
+<div class="tc" onclick="cp(this)" style="margin-bottom:6px"><button class="cp">Copy</button><div class="m">When someone asks about cross-chain on TRON</div><div class="t">We've built exactly this at Allbridge Core — non-custodial stablecoin routing across 17 chains with native TRC-20 delivery. Happy to share our experience integrating with TRON's Energy system and TVM if it helps your project.
+
+Our TRON SDK guide: docs-core.allbridge.io/sdk/guides/tron</div></div>
+<div class="tc" onclick="cp(this)"><button class="cp">Copy</button><div class="m">When a new TBL project posts in Cross-Chain track</div><div class="t">Welcome to the Cross-Chain track! We're Allbridge Core — been routing stablecoins to TRON since 2021 ($1B+ USDT). Always great to see more cross-chain builders here. Happy to share notes on TRON integration if useful. Let's strengthen this track together.</div></div>
+</div>
+</div>
+
+<div id="smm-engage" class="stab">
+<div class="card">
+<h3>Twitter Accounts to Engage With (SMM Priorities)</h3>
+<p style="font-size:.78em;color:var(--muted);margin-bottom:8px">Like + thoughtful reply on every post. Goal: become a familiar, valuable voice in their notifications.</p>
+<table>
+<tr><th>Priority</th><th>Account</th><th>Why</th><th>Engagement Style</th></tr>
+<tr><td><span class="b b-h">DAILY</span></td><td><strong>@trondao</strong></td><td>RT target #1</td><td>Add data to every post. "We see this in our bridge data too: $[X]M this week."</td></tr>
+<tr><td><span class="b b-h">DAILY</span></td><td><strong>@justinsuntron</strong></td><td>3.9M amplification</td><td>Confirm his takes with our data. Never disagree publicly.</td></tr>
+<tr><td><span class="b b-h">DAILY</span></td><td><strong>@TRONSCAN_ORG</strong></td><td>Data partner</td><td>Add cross-chain layer to their on-chain data.</td></tr>
+<tr><td><span class="b b-w">3x/WK</span></td><td><strong>@defi_sunio</strong></td><td>Largest DEX</td><td>"Bridge → Swap" flow mentions.</td></tr>
+<tr><td><span class="b b-w">3x/WK</span></td><td><strong>@DeFi_JUST</strong></td><td>Largest lending</td><td>"Bridge → Lend" flow mentions.</td></tr>
+<tr><td><span class="b b-w">3x/WK</span></td><td><strong>@sunpumpmeme</strong></td><td>Retail demand</td><td>"Need USDT on TRON? Bridge in 60 sec."</td></tr>
+<tr><td><span class="b b-c">2x/WK</span></td><td><strong>@TronLinkWallet</strong></td><td>Wallet partner</td><td>"TronLink + Allbridge = seamless bridge."</td></tr>
+<tr><td><span class="b b-c">2x/WK</span></td><td><strong>@UhryniakDave</strong></td><td>TRON DAO gatekeeper</td><td>Engage thoughtfully. Like everything. Build relationship.</td></tr>
+<tr><td><span class="b b-c">2x/WK</span></td><td><strong>@TronWeekly</strong></td><td>Media coverage</td><td>Offer data exclusives. "DM us for cross-chain flow data."</td></tr>
+<tr><td><span class="b b-n">1x/WK</span></td><td><strong>@WinkLink_Oracle</strong></td><td>Eco recap inclusion</td><td>Ask to be included in weekly TRON Eco Recap.</td></tr>
+<tr><td><span class="b b-n">1x/WK</span></td><td><strong>@Defi_Zee</strong></td><td>Analysis threads</td><td>Add bridge data angle to their DeFi analysis.</td></tr>
+<tr><td><span class="b b-n">1x/WK</span></td><td><strong>@stusdtio</strong></td><td>RWA yield</td><td>"Bridge USDT → stUSDT" flow.</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>Engagement Don'ts</h3>
+<ul>
+<li>❌ Never reply to hack/exploit/scam posts with promo</li>
+<li>❌ Never argue with competitors publicly — "great to see more bridges" tone only</li>
+<li>❌ Never post the same reply twice — rotate templates</li>
+<li>❌ Never tag Justin Sun in our own posts (looks desperate) — only reply under HIS posts</li>
+<li>❌ Never hard-sell in Reddit/Quora — be the helpful expert who happens to work at Allbridge</li>
+</ul>
+</div>
+</div>
+
+<div id="smm-trends" class="stab">
+<div class="card">
+<h3>April-June 2026 Trend Calendar — What to Post When</h3>
+<p style="font-size:.78em;color:var(--muted);margin-bottom:8px">Ride these narratives in order. Each trend has a window — hit it while it's hot.</p>
+<table>
+<tr><th>Window</th><th>Trend</th><th>Heat</th><th>Twitter Post Angle</th><th>Reddit/Forum Angle</th></tr>
+<tr><td><strong>Apr 7-20</strong></td><td>USDT ATH on TRON ($85.4B)</td><td><span class="b b-h">HOT NOW</span></td><td>"$1B+ of that USDT came through our bridge. Here's where it flows from."</td><td>r/Tronix: "Cross-chain USDT data" report</td></tr>
+<tr><td><strong>Apr 7-20</strong></td><td>Institutional access (Anchorage, Mastercard, Zero Hash)</td><td><span class="b b-h">HOT NOW</span></td><td>"Institutions need cross-chain. Our avg transfer: $4,259 — already institutional grade."</td><td>Forum: "What Institutional Access Means for TRON DeFi"</td></tr>
+<tr><td><strong>Apr 14-30</strong></td><td>Agentic AI ($1B TRON fund)</td><td><span class="b b-h">HOT</span></td><td>"AI agents need to move USDT across chains. TRON has $85B. We have the bridges."</td><td>Forum: "AI Agents + Cross-Chain Stablecoins"</td></tr>
+<tr><td><strong>Apr-May</strong></td><td>SEC case dismissed</td><td><span class="b b-w">WARM</span></td><td>"Regulatory clarity → more DeFi adoption → more cross-chain flows. We're ready."</td><td>r/defi: compliance angle</td></tr>
+<tr><td><strong>Apr-May</strong></td><td>MetaMask native TRON</td><td><span class="b b-w">WARM</span></td><td>Tutorial: "Bridge USDT to TRON via MetaMask in 30 seconds"</td><td>r/Tronix: step-by-step guide</td></tr>
+<tr><td><strong>May</strong></td><td>USDD 2.0 (20% APY)</td><td><span class="b b-w">WARM</span></td><td>"Bridge USDT to TRON → convert to USDD → 20% APY. Full DeFi flow."</td><td>r/defi: yield strategy post</td></tr>
+<tr><td><strong>May-Jun</strong></td><td>USD1 stablecoin on TRON</td><td><span class="b b-c">WATCH</span></td><td>React when news drops. "Multi-stablecoin TRON = more bridge demand."</td><td>Forum: analysis post when live</td></tr>
+<tr><td><strong>Ongoing</strong></td><td>SunPump / meme season</td><td><span class="b b-c">WATCH</span></td><td>"Need USDT on TRON fast? Bridge from any chain, no KYC."</td><td>Reply in r/Tronix meme threads</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>Content Multiplier — One Topic, Four Platforms</h3>
+<p style="font-size:.78em;color:var(--muted);margin-bottom:8px">Every piece of content should be adapted across all platforms in the same week.</p>
+<div style="display:flex;flex-direction:column;gap:6px">
+<div style="padding:8px 12px;background:var(--surface);border-radius:6px;font-size:.82em"><strong>Example: "AI Agents + Cross-Chain"</strong></div>
+<div style="padding:8px 12px;background:#fff;border:1px solid var(--border);border-radius:6px;font-size:.82em">→ <strong>Twitter:</strong> 3-tweet thread with $85B stat + @trondao tag</div>
+<div style="padding:8px 12px;background:#fff;border:1px solid var(--border);border-radius:6px;font-size:.82em">→ <strong>Reddit r/defi:</strong> "Why AI Payment Agents Will Need Cross-Chain Bridges" discussion post</div>
+<div style="padding:8px 12px;background:#fff;border:1px solid var(--border);border-radius:6px;font-size:.82em">→ <strong>Forum:</strong> "How AI Agents Will Move Stablecoins on TRON" deep-dive</div>
+<div style="padding:8px 12px;background:#fff;border:1px solid var(--border);border-radius:6px;font-size:.82em">→ <strong>Blog:</strong> Full SEO article "AI Agents + Cross-Chain Stablecoins on TRON"</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- SHILLERS PLAYBOOK -->
+<div id="shillers" class="section">
+<h1>Shillers <span>Playbook</span></h1>
+<p class="sub">Target accounts + ready-to-paste comments for the outreach team. Reply from @Allbridge_io.</p>
+
+<div class="alert"><h4>Rules of Engagement</h4><p>1. Never shill under negative/hack/exploit posts. 2. Add value first — data or insight, then mention Allbridge. 3. Max 3-4 replies per account per week (don't spam). 4. Always tag @trondao when relevant. 5. Match the tone of the original post.</p></div>
+
+<div class="tabs">
+<button class="active" onclick="st('shillers','tier1',this)">Tier 1 — Daily</button>
+<button onclick="st('shillers','tier2',this)">Tier 2 — 3x/Week</button>
+<button onclick="st('shillers','tier3',this)">Tier 3 — Opportunistic</button>
+<button onclick="st('shillers','hunt',this)">Keyword Hunting</button>
+</div>
+
+<div id="shillers-tier1" class="stab active">
+<div class="card">
+<h3>@trondao (3M+) — Monitor Daily</h3>
+<p style="font-size:.78em;color:var(--muted);margin-bottom:8px">Posts: milestones, ecosystem updates, new integrations, weekly recaps. <strong>Goal:</strong> Get RT'd / featured.</p>
+<table>
+<tr><th>When They Post</th><th>Comment Template (click to copy)</th></tr>
+<tr><td>USDT supply milestone<br><span style="font-size:.72em;color:var(--muted)">"$XX billion USDT on TRON"</span></td><td><div class="tc" onclick="cp(this)" style="margin:0;border:0;padding:4px"><button class="cp">Copy</button><div class="t">We see this growth firsthand — $1B+ USDT bridged to TRON through Allbridge Core. Cross-chain demand for TRON keeps accelerating week over week. 📊</div></div></td></tr>
+<tr><td>New integration announcement<br><span style="font-size:.72em;color:var(--muted)">"Welcome @project to TRON"</span></td><td><div class="tc" onclick="cp(this)" style="margin:0;border:0;padding:4px"><button class="cp">Copy</button><div class="t">Great addition to the ecosystem. We've been routing stablecoins to TRON since 2021 — happy to help any new project that needs cross-chain USDT/USDC infrastructure. 🤝
+
+core.allbridge.io</div></div></td></tr>
+<tr><td>Weekly ecosystem recap<br><span style="font-size:.72em;color:var(--muted)">"This week on TRON..."</span></td><td><div class="tc" onclick="cp(this)" style="margin:0;border:0;padding:4px"><button class="cp">Copy</button><div class="t">Adding our cross-chain data: $[X]M bridged to TRON this week via Allbridge Core. Top route: Ethereum → TRON. The inflows don't stop. 🔴</div></div></td></tr>
+<tr><td>Developer/hackathon announcement</td><td><div class="tc" onclick="cp(this)" style="margin:0;border:0;padding:4px"><button class="cp">Copy</button><div class="t">Builders who need cross-chain stablecoin transfers — we have a full SDK and API for TRON integration. One integration = access to 17 chains.
+
+docs-core.allbridge.io/sdk/guides/tron</div></div></td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>@justinsuntron (3.9M) — Monitor Daily</h3>
+<p style="font-size:.78em;color:var(--muted);margin-bottom:8px">Posts: stablecoin takes, TRON milestones, institutional news, crypto macro. <strong>Goal:</strong> Get noticed → RT → mention.</p>
+<table>
+<tr><th>When He Posts</th><th>Comment Template</th></tr>
+<tr><td>Stablecoin dominance take<br><span style="font-size:.72em;color:var(--muted)">"TRON is the #1 stablecoin chain"</span></td><td><div class="tc" onclick="cp(this)" style="margin:0;border:0;padding:4px"><button class="cp">Copy</button><div class="t">The data confirms it. 38% of all cross-chain stablecoin volume through Allbridge Core flows to TRON — more than Ethereum, Solana, or any other chain. $1B+ and growing.</div></div></td></tr>
+<tr><td>Institutional adoption news<br><span style="font-size:.72em;color:var(--muted)">"Anchorage/Mastercard/Zero Hash"</span></td><td><div class="tc" onclick="cp(this)" style="margin:0;border:0;padding:4px"><button class="cp">Copy</button><div class="t">Institutions are coming, and they'll need cross-chain rails. We're already processing $4K+ average transfers to TRON — the institutional bridge infrastructure is ready.
+
+@trondao</div></div></td></tr>
+<tr><td>TRON network stats<br><span style="font-size:.72em;color:var(--muted)">"372M accounts / 2.6M active"</span></td><td><div class="tc" onclick="cp(this)" style="margin:0;border:0;padding:4px"><button class="cp">Copy</button><div class="t">And growing. We bridge USDT to TRON from 16 other chains — including routes nobody else offers (Stellar↔TRON, SUI↔TRON). Every bridge transfer = new TRON user.</div></div></td></tr>
+<tr><td>AI / agentic payments<br><span style="font-size:.72em;color:var(--muted)">"$1B AI fund / AI on TRON"</span></td><td><div class="tc" onclick="cp(this)" style="margin:0;border:0;padding:4px"><button class="cp">Copy</button><div class="t">AI agents will need to move stablecoins cross-chain autonomously. TRON holds $85B+ USDT — any AI payment system needs TRON rails.
+
+We're building the cross-chain piece. @trondao</div></div></td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>@TRONSCAN_ORG (~200K) — Monitor Daily</h3>
+<p style="font-size:.78em;color:var(--muted);margin-bottom:8px">Posts: on-chain data, network stats, transaction milestones. <strong>Goal:</strong> Position as data-driven infrastructure.</p>
+<table>
+<tr><th>When They Post</th><th>Comment Template</th></tr>
+<tr><td>Transaction/address milestones</td><td><div class="tc" onclick="cp(this)" style="margin:0;border:0;padding:4px"><button class="cp">Copy</button><div class="t">Cross-chain contributes to this growth. Last week alone: $[X]M bridged to TRON through Allbridge Core from Ethereum, Solana, BNB Chain, and 14 other networks.</div></div></td></tr>
+<tr><td>USDT on-chain data</td><td><div class="tc" onclick="cp(this)" style="margin:0;border:0;padding:4px"><button class="cp">Copy</button><div class="t">We track USDT cross-chain flows daily. TRON consistently pulls the most inbound stablecoin volume through our bridge — 38% of everything we process. The data speaks.</div></div></td></tr>
+</table>
+</div>
+</div>
+
+<div id="shillers-tier2" class="stab">
+<div class="card">
+<h3>@defi_sunio / SUN.io (SunSwap) — 3x/Week</h3>
+<p style="font-size:.78em;color:var(--muted);margin-bottom:8px">Posts: swap volumes, new pools, TVL milestones. <strong>Goal:</strong> "Bridge + Swap" narrative.</p>
+<table>
+<tr><th>When They Post</th><th>Comment Template</th></tr>
+<tr><td>TVL / volume milestone</td><td><div class="tc" onclick="cp(this)" style="margin:0;border:0;padding:4px"><button class="cp">Copy</button><div class="t">Bridge USDT from any chain → TRON → Swap on SunSwap. The full DeFi flow in one session.
+
+We handle the cross-chain part: core.allbridge.io @trondao</div></div></td></tr>
+<tr><td>New pool / pair launch</td><td><div class="tc" onclick="cp(this)" style="margin:0;border:0;padding:4px"><button class="cp">Copy</button><div class="t">Nice. Users can bridge USDT to TRON from 16 chains via Allbridge Core, then swap into this pair on SunSwap. Cross-chain → DeFi in under 5 minutes. 🔴</div></div></td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>@DeFi_JUST / JustLend ($6.4B TVL) — 3x/Week</h3>
+<p style="font-size:.78em;color:var(--muted);margin-bottom:8px">Posts: lending rates, TVL updates, USDT supply. <strong>Goal:</strong> "Bridge + Lend" narrative.</p>
+<table>
+<tr><th>When They Post</th><th>Comment Template</th></tr>
+<tr><td>USDT lending rate / TVL update</td><td><div class="tc" onclick="cp(this)" style="margin:0;border:0;padding:4px"><button class="cp">Copy</button><div class="t">Bridge USDT from Ethereum/Solana/BNB to TRON via Allbridge Core → lend on JustLend → earn yield.
+
+One of the cleanest cross-chain DeFi flows in crypto. @trondao</div></div></td></tr>
+<tr><td>Supply milestone</td><td><div class="tc" onclick="cp(this)" style="margin:0;border:0;padding:4px"><button class="cp">Copy</button><div class="t">Part of this supply comes cross-chain. We've bridged $1B+ USDT to TRON — a meaningful chunk flows into lending protocols like JustLend. The demand is structural.</div></div></td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>@sunpumpmeme / SunPump (257K) — 3x/Week</h3>
+<p style="font-size:.78em;color:var(--muted);margin-bottom:8px">Posts: meme launches, volume spikes, community hype. <strong>Goal:</strong> Capture retail bridge demand.</p>
+<table>
+<tr><th>When They Post</th><th>Comment Template</th></tr>
+<tr><td>Volume spike / trending meme</td><td><div class="tc" onclick="cp(this)" style="margin:0;border:0;padding:4px"><button class="cp">Copy</button><div class="t">Need USDT on TRON to ape in? Bridge from any chain in under a minute — no CEX, no KYC.
+
+core.allbridge.io → native TRC-20 USDT → swap on SunPump 🚀</div></div></td></tr>
+<tr><td>New launch announcement</td><td><div class="tc" onclick="cp(this)" style="margin:0;border:0;padding:4px"><button class="cp">Copy</button><div class="t">For anyone coming from ETH/SOL/BNB — you can bridge USDT to TRON in under 60 seconds via Allbridge Core. Non-custodial. Native TRC-20. No wrapped tokens.</div></div></td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>@TronLinkWallet (10M users) — 2x/Week</h3>
+<p style="font-size:.78em;color:var(--muted);margin-bottom:8px">Posts: updates, feature releases, tutorials. <strong>Goal:</strong> Wallet ↔ bridge co-marketing.</p>
+<table>
+<tr><th>When They Post</th><th>Comment Template</th></tr>
+<tr><td>Feature update / tutorial</td><td><div class="tc" onclick="cp(this)" style="margin:0;border:0;padding:4px"><button class="cp">Copy</button><div class="t">TronLink + Allbridge Core = bridge USDT from any chain directly into your TronLink wallet. Connect, bridge, receive native TRC-20.
+
+We support TronLink on desktop and mobile. 🔴</div></div></td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>@htx_global / HTX — 2x/Week</h3>
+<p style="font-size:.78em;color:var(--muted);margin-bottom:8px">Posts: listings, promos, ecosystem updates. <strong>Goal:</strong> Non-custodial alternative positioning.</p>
+<table>
+<tr><th>When They Post</th><th>Comment Template</th></tr>
+<tr><td>TRON-related promotion</td><td><div class="tc" onclick="cp(this)" style="margin:0;border:0;padding:4px"><button class="cp">Copy</button><div class="t">For those who prefer non-custodial: bridge USDT to TRON from 16 chains via Allbridge Core. Your keys, your crypto. No KYC needed.
+
+core.allbridge.io @trondao</div></div></td></tr>
+</table>
+</div>
+</div>
+
+<div id="shillers-tier3" class="stab">
+<div class="card">
+<h3>Competitor Bridge Accounts — Reply When They Post About TRON</h3>
+<table>
+<tr><th>Account</th><th>When to Reply</th><th>Comment Template</th></tr>
+<tr><td><strong>@symaboratory</strong><br>(Symbiosis)</td><td>When they post TRON volume/updates</td><td><div class="tc" onclick="cp(this)" style="margin:0;border:0;padding:4px"><button class="cp">Copy</button><div class="t">Great to see more bridges serving TRON. We've been on TRON since 2021 — $1B+ USDT bridged. The ecosystem is big enough for all of us. 🤝 @trondao</div></div></td></tr>
+<tr><td><strong>@daboraio</strong><br>(deBridge)</td><td>When they post TRON features</td><td><div class="tc" onclick="cp(this)" style="margin:0;border:0;padding:4px"><button class="cp">Copy</button><div class="t">Welcome to TRON! We've been routing stablecoins here since 2021. If you need non-EVM expertise (Stellar↔TRON, SUI↔TRON routes), we've built the playbook. Let's grow the ecosystem together.</div></div></td></tr>
+<tr><td><strong>@StargateFinance</strong></td><td>USDT0/TRON announcements</td><td><div class="tc" onclick="cp(this)" style="margin:0;border:0;padding:4px"><button class="cp">Copy</button><div class="t">USDT0 on TRON is a big deal. We already route through USDT0/OFT alongside LP pools and CCTP — our system auto-picks the cheapest path for every transfer. More options = better rates for users.</div></div></td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>Crypto Media / Influencers — When They Mention TRON</h3>
+<table>
+<tr><th>Account</th><th>When to Reply</th><th>Comment Template</th></tr>
+<tr><td><strong>@TronWeekly</strong> (~66K)</td><td>Any TRON ecosystem article</td><td><div class="tc" onclick="cp(this)" style="margin:0;border:0;padding:4px"><button class="cp">Copy</button><div class="t">We can add cross-chain data to this story. Allbridge Core has bridged $1B+ USDT to TRON — we have unique insight into which chains are sending the most capital to TRON and why. DM us for data. 📊</div></div></td></tr>
+<tr><td><strong>@WinkLink_Oracle</strong></td><td>Weekly TRON Eco Recap</td><td><div class="tc" onclick="cp(this)" style="margin:0;border:0;padding:4px"><button class="cp">Copy</button><div class="t">Love the weekly recaps. Allbridge Core is part of this ecosystem too — $1B+ USDT bridged to TRON, 38% of our total volume. Would love to be included in future roundups! @trondao</div></div></td></tr>
+<tr><td><strong>@Defi_Zee</strong></td><td>TRON DeFi analysis threads</td><td><div class="tc" onclick="cp(this)" style="margin:0;border:0;padding:4px"><button class="cp">Copy</button><div class="t">Interesting analysis. One angle worth adding: cross-chain inflows. TRON pulls 38% of all stablecoin bridge volume through Allbridge Core. The capital migration to TRON is structural, not speculative.</div></div></td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>Random Users Asking About TRON Bridges — Search & Reply</h3>
+<table>
+<tr><th>User Asks</th><th>Comment Template</th></tr>
+<tr><td>"How do I send USDT to TRON?"<br>"How to bridge to TRON?"</td><td><div class="tc" onclick="cp(this)" style="margin:0;border:0;padding:4px"><button class="cp">Copy</button><div class="t">You can bridge USDT to TRON from any chain in under a minute at core.allbridge.io — non-custodial, native TRC-20 USDT. We've processed $1B+ to TRON. No KYC, no wrapped tokens.</div></div></td></tr>
+<tr><td>"What's the cheapest way to get USDT on TRON?"</td><td><div class="tc" onclick="cp(this)" style="margin:0;border:0;padding:4px"><button class="cp">Copy</button><div class="t">CEX withdrawal ($0.50-1) is cheapest for small amounts. For non-custodial: Allbridge Core (~0.3%) compares LP, CCTP, and OFT routes automatically to find best rate. For large transfers, our LP pools can even create positive slippage.
+
+core.allbridge.io</div></div></td></tr>
+<tr><td>"Best bridge for TRON?"<br>"Which bridge supports TRON?"</td><td><div class="tc" onclick="cp(this)" style="margin:0;border:0;padding:4px"><button class="cp">Copy</button><div class="t">Allbridge Core — we've bridged $1B+ USDT to TRON since 2021. 17 chains supported including non-EVM routes nobody else has (Stellar↔TRON, SUI↔TRON). Non-custodial, native TRC-20.
+
+core.allbridge.io @trondao</div></div></td></tr>
+<tr><td>"Is it safe to bridge to TRON?"<br>"Can I bridge without an exchange?"</td><td><div class="tc" onclick="cp(this)" style="margin:0;border:0;padding:4px"><button class="cp">Copy</button><div class="t">Yes — Allbridge Core is fully non-custodial. Your assets go through verified smart contracts, not our wallets. All TRON contracts are published and audited. $1B+ processed, live since 2021.
+
+No KYC, no exchange account needed.</div></div></td></tr>
+</table>
+</div>
+</div>
+
+<div id="shillers-hunt" class="stab">
+<div class="card">
+<h3>Twitter Search Queries — Run Daily</h3>
+<p style="font-size:.78em;color:var(--muted);margin-bottom:8px">Search these on X, filter by "Latest", reply to relevant posts within 1-2 hours for max visibility.</p>
+<table>
+<tr><th>Priority</th><th>Search Query</th><th>Expected Hits</th></tr>
+<tr><td><span class="b b-h">HIGH</span></td><td><strong>"bridge to tron"</strong></td><td>Users actively looking to bridge</td></tr>
+<tr><td><span class="b b-h">HIGH</span></td><td><strong>"send USDT to tron"</strong></td><td>Direct need — highest conversion</td></tr>
+<tr><td><span class="b b-h">HIGH</span></td><td><strong>"USDT TRC-20" bridge OR transfer OR send</strong></td><td>Specific token format searchers</td></tr>
+<tr><td><span class="b b-w">MED</span></td><td><strong>"cheapest way" USDT tron</strong></td><td>Price-sensitive users</td></tr>
+<tr><td><span class="b b-w">MED</span></td><td><strong>"how to get USDT on tron"</strong></td><td>Beginners — high education value</td></tr>
+<tr><td><span class="b b-w">MED</span></td><td><strong>tron bridge -from:Allbridge_io</strong></td><td>All tron bridge mentions (excl us)</td></tr>
+<tr><td><span class="b b-c">LOW</span></td><td><strong>"cross-chain" tron OR @trondao</strong></td><td>Broader ecosystem discussions</td></tr>
+<tr><td><span class="b b-c">LOW</span></td><td><strong>SunPump OR SunSwap "need USDT"</strong></td><td>DeFi users needing to bridge in</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>Daily Routine for Shillers</h3>
+<div style="display:flex;flex-direction:column;gap:6px">
+<div style="padding:8px 12px;background:var(--surface);border-radius:6px;font-size:.82em"><strong>9:00 AM</strong> — Check @trondao, @justinsuntron, @TRONSCAN_ORG for new posts → reply within 30 min</div>
+<div style="padding:8px 12px;background:var(--surface);border-radius:6px;font-size:.82em"><strong>10:00 AM</strong> — Run all HIGH priority search queries → reply to 3-5 relevant posts</div>
+<div style="padding:8px 12px;background:var(--surface);border-radius:6px;font-size:.82em"><strong>12:00 PM</strong> — Check Tier 2 accounts (SunSwap, JustLend, SunPump) → reply to new posts</div>
+<div style="padding:8px 12px;background:var(--surface);border-radius:6px;font-size:.82em"><strong>3:00 PM</strong> — Run MED priority search queries → reply to 2-3 relevant posts</div>
+<div style="padding:8px 12px;background:var(--surface);border-radius:6px;font-size:.82em"><strong>5:00 PM</strong> — Check competitor accounts + media for TRON mentions → opportunistic replies</div>
+<div style="padding:8px 12px;background:var(--primary-bg);border-radius:6px;font-size:.82em"><strong>Weekly target:</strong> 25-35 quality replies. Track which ones get likes/engagement to refine templates.</div>
+</div>
+</div>
+
+<div class="card">
+<h3>Reddit / Quora Hunting</h3>
+<table>
+<tr><th>Platform</th><th>Where to Hunt</th><th>Response Style</th></tr>
+<tr><td><strong>Reddit</strong></td><td>r/Tronix, r/defi, r/cryptocurrency — search "bridge tron" "USDT tron"</td><td>Helpful first, mention Allbridge naturally. Never hard-sell. "I use Allbridge Core for this — non-custodial, about 0.3% fee"</td></tr>
+<tr><td><strong>Quora</strong></td><td>Search "bridge USDT to TRON", "send USDT TRC-20", "cheapest TRON transfer"</td><td>Long-form educational answer. Mention multiple methods (CEX, bridges). Position Allbridge as one option with unique routes.</td></tr>
+</table>
+</div>
+</div>
+</div>
+
+<!-- AMA / TWITTER SPACES -->
+<div id="ama" class="section">
+<h1>AMA / Twitter <span>Spaces</span></h1>
+<p class="sub">Monthly Spaces with TRON ecosystem projects. Co-host from @Allbridge_io or @avelykyy.</p>
+
+<div class="alert"><h4>Format That Works</h4><p>45-60 min. 2-3 guests max. One clear topic. Announce 3 days in advance. Tag @trondao + all guests. Record and clip for content. Post key takeaways thread after.</p></div>
+
+<div class="card">
+<h3>Proposed Spaces Calendar (12 Weeks)</h3>
+<table>
+<tr><th>#</th><th>Week</th><th>Topic</th><th>Invited Guests</th><th>Why This Topic</th></tr>
+<tr><td>1</td><td>Week 6<br>May 12</td><td><strong>"The TRON DeFi Stack: Bridge → Swap → Lend → Earn"</strong></td><td>
+<strong>@defi_sunio</strong> (SunSwap, $232M TVL)<br>
+<strong>@DeFi_JUST</strong> (JustLend, $3.37B TVL)<br>
+<strong>@trondao</strong> (host/co-host)
+</td><td>Show the full user journey. Allbridge = entry point for all TRON DeFi. Biggest projects = biggest amplification.</td></tr>
+<tr><td>2</td><td>Week 9<br>Jun 2</td><td><strong>"AI Agents + Stablecoin Payments on TRON"</strong></td><td>
+<strong>@trondao</strong> (AI fund team)<br>
+<strong>@AeonPayHQ</strong> (AEON Pay, merchant payments)<br>
+<strong>@avelykyy</strong> (cross-chain AI rails angle)
+</td><td>Ride the $1B AI fund narrative. Position Allbridge as cross-chain infrastructure for AI agents.</td></tr>
+<tr><td>3</td><td>Week 11<br>Jun 16</td><td><strong>"Cross-Chain Capital Flows: Where Is Money Moving?"</strong></td><td>
+<strong>@UhryniakDave</strong> (TRON DAO ecosystem)<br>
+<strong>@TRONSCAN_ORG</strong> (on-chain data)<br>
+<strong>@avelykyy</strong> (bridge data angle)
+</td><td>Data-driven authority piece. Share proprietary bridge flow data that nobody else has.</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>Top TRON Projects to Invite (by DeFiLlama TVL)</h3>
+<table>
+<tr><th>Project</th><th>TVL</th><th>Category</th><th>Twitter</th><th>Space Topic Angle</th><th>Priority</th></tr>
+<tr><td><strong>JustLend</strong></td><td>$3.37B</td><td>Lending</td><td>@DeFi_JUST</td><td>"Bridge + Lend" flow, yield strategies</td><td><span class="b b-h">HIGH</span></td></tr>
+<tr><td><strong>USDD</strong></td><td>$1.20B</td><td>Stablecoin/CDP</td><td>@usaboratory</td><td>Multi-stablecoin TRON, 20% APY narrative</td><td><span class="b b-h">HIGH</span></td></tr>
+<tr><td><strong>SunSwap</strong></td><td>$232M</td><td>DEX</td><td>@defi_sunio</td><td>"Bridge + Swap" flow, TRC-20 liquidity</td><td><span class="b b-h">HIGH</span></td></tr>
+<tr><td><strong>stUSDT</strong></td><td>$61M</td><td>RWA</td><td>@stusdtio</td><td>RWA yield, tokenized treasuries on TRON</td><td><span class="b b-w">MED</span></td></tr>
+<tr><td><strong>SunPump</strong></td><td>$2M</td><td>Launchpad</td><td>@sunpumpmeme</td><td>Retail onboarding, meme economy, bridging in</td><td><span class="b b-w">MED</span></td></tr>
+<tr><td><strong>AEON Pay</strong></td><td>$1.9M</td><td>Payments</td><td>@AeonPayHQ</td><td>Merchant payments, real-world stablecoin use</td><td><span class="b b-w">MED</span></td></tr>
+<tr><td><strong>River</strong></td><td>New</td><td>Chain abstraction</td><td>@river_protocol</td><td>Chain abstraction + bridging, $8M TRON grant</td><td><span class="b b-w">MED</span></td></tr>
+<tr><td><strong>NEAR Intents</strong></td><td>$852K</td><td>Cross-chain</td><td>@NEARProtocol</td><td>Intent-based cross-chain, complementary infra</td><td><span class="b b-c">LOW</span></td></tr>
+<tr><td><strong>WinkLink</strong></td><td>Oracle</td><td>Infrastructure</td><td>@WinkLink_Oracle</td><td>Oracle data for bridges, ecosystem infra</td><td><span class="b b-c">LOW</span></td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>Bonus Space Ideas (Quarterly)</h3>
+<table>
+<tr><th>Topic</th><th>Guests</th><th>Angle</th></tr>
+<tr><td>"Bridging the Non-EVM Gap: TRON, Stellar, SUI"</td><td>@StellarOrg, @SuiNetwork, @trondao</td><td>Only Allbridge connects all three — unique authority</td></tr>
+<tr><td>"Institutional TRON: What Anchorage & Mastercard Mean"</td><td>@UhryniakDave, @TronWeekly</td><td>Institutional narrative, bridge as on-ramp</td></tr>
+<tr><td>"TRON Energy Masterclass: Pay Less for Every Transfer"</td><td>@TronLinkWallet, community devs</td><td>Education + position Allbridge as Energy-optimized</td></tr>
+<tr><td>"State of TRON Bridges: Comparing Routes & Fees"</td><td>Neutral format — invite 1-2 other bridges</td><td>Confident positioning, community goodwill</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>Post-Space Content Workflow</h3>
+<div style="display:flex;flex-direction:column;gap:6px">
+<div style="padding:8px 12px;background:var(--surface);border-radius:6px;font-size:.82em"><strong>During:</strong> Record the Space. Take notes on key quotes and data points.</div>
+<div style="padding:8px 12px;background:var(--surface);border-radius:6px;font-size:.82em"><strong>Same day:</strong> Tweet a 3-5 tweet "Key takeaways" thread tagging all guests + @trondao</div>
+<div style="padding:8px 12px;background:var(--surface);border-radius:6px;font-size:.82em"><strong>Next day:</strong> Post longer recap on TronDAO forum (TRON Discussion category)</div>
+<div style="padding:8px 12px;background:var(--surface);border-radius:6px;font-size:.82em"><strong>Same week:</strong> Clip 2-3 best moments (60-90 sec) for standalone tweets</div>
+<div style="padding:8px 12px;background:var(--surface);border-radius:6px;font-size:.82em"><strong>Blog:</strong> Turn into a blog post if topic has SEO value</div>
+</div>
+</div>
+</div>
+
+<!-- DEV IDEAS (FUNDABLE) -->
+<div id="devfund" class="section">
+<h1>Dev Ideas <span>(Fundable)</span></h1>
+<p class="sub">Features to build + pitch to TRON for funding. Based on what TRON funded in last 6 months.</p>
+
+<div class="alert"><h4>TRON Funding Landscape (Oct 2025 - Apr 2026)</h4><p>$150M disbursed in 5 months. River got $8M for chain abstraction. $1B AI fund (no named portfolio yet). HackaTRON S7: $650K. TBL: $10M. Energy grants available. NO bridge has received a direct TRON grant — we'd be the first.</p></div>
+
+<div class="card">
+<h3>Funding Channels Available</h3>
+<table>
+<tr><th>Channel</th><th>Size</th><th>Timeline</th><th>Best For</th></tr>
+<tr><td><strong>TRON Builders League</strong></td><td>$10M pool</td><td>Rolling admissions</td><td>Ongoing development + mentorship</td></tr>
+<tr><td><strong>TRON Ecosystem Fund</strong></td><td>$100M+/year</td><td>1-2 week review</td><td>Milestone-based grants (paid in USDD)</td></tr>
+<tr><td><strong>TRON DAO Ventures</strong></td><td>$100K-$8M</td><td>Deal-based</td><td>Strategic infrastructure investments</td></tr>
+<tr><td><strong>AI Fund</strong></td><td>$1B</td><td>New, accepting apps</td><td>AI agent payment infrastructure</td></tr>
+<tr><td><strong>Energy Grants</strong></td><td>Variable</td><td>Negotiated</td><td>Fee subsidies for users (Symbiosis got one)</td></tr>
+</table>
+</div>
+
+<div class="tabs">
+<button class="active" onclick="st('devfund','ideas',this)">Feature Ideas</button>
+<button onclick="st('devfund','aligned',this)">TRON Priority Alignment</button>
+<button onclick="st('devfund','pitch',this)">Pitch Framing</button>
+</div>
+
+<div id="devfund-ideas" class="stab active">
+<div class="card">
+<h3>High-Priority Features (Aligned with TRON Funding Priorities)</h3>
+<table>
+<tr><th>#</th><th>Feature</th><th>What It Does</th><th>TRON Priority Match</th><th>Funding Target</th><th>Dev Effort</th></tr>
+<tr><td>1</td><td><strong>AI Agent Payment SDK for TRON</strong></td><td>SDK that lets AI agents autonomously bridge + transact USDT on TRON. Gasless execution, intent-based routing.</td><td><span class="b b-h">$1B AI FUND</span></td><td>$200-500K</td><td>3-4 months</td></tr>
+<tr><td>2</td><td><strong>TRON Deposit Addresses</strong></td><td>Generate unique TRON addresses that auto-bridge inbound USDT from any chain. B2B payment infra.</td><td><span class="b b-h">PAYMENTS</span></td><td>$100-250K</td><td>2-3 months</td></tr>
+<tr><td>3</td><td><strong>Gas-Free Bridge to TRON</strong></td><td>Users pay bridge fees in USDT, not TRX. Eliminate the "need TRX for gas" friction. Apply for Energy grant like Symbiosis.</td><td><span class="b b-h">ENERGY GRANT</span></td><td>Energy subsidy</td><td>1-2 months</td></tr>
+<tr><td>4</td><td><strong>Bridge + DEX Swap (SunSwap)</strong></td><td>One-click: bridge USDT to TRON + swap to any TRC-20 via SunSwap. Single transaction UX.</td><td><span class="b b-w">DEFI</span></td><td>$50-100K</td><td>2 months</td></tr>
+<tr><td>5</td><td><strong>Cross-Chain Stablecoin Flow Dashboard</strong></td><td>Public dashboard showing real-time USDT flows to/from TRON across all chains. Proprietary data as public good.</td><td><span class="b b-w">INFRA / DATA</span></td><td>$30-50K</td><td>1 month</td></tr>
+<tr><td>6</td><td><strong>TRON Route Optimizer</strong></td><td>Auto-compare LP pool vs CCTP vs OFT per transfer. Show user all options with fees, pick cheapest.</td><td><span class="b b-w">DEFI</span></td><td>$50-100K</td><td>2 months</td></tr>
+<tr><td>7</td><td><strong>Programmatic Route Pages (SEO)</strong></td><td>200+ auto-generated pages: /bridge/eth-to-tron, /bridge/sol-to-tron, etc. Drives organic traffic to TRON.</td><td><span class="b b-c">GROWTH</span></td><td>$20-30K</td><td>1 month</td></tr>
+<tr><td>8</td><td><strong>TRON Widget / Embed SDK</strong></td><td>Embeddable bridge widget any TRON dApp can add. One line of code = cross-chain USDT deposits.</td><td><span class="b b-w">DEV TOOLS</span></td><td>$50-100K</td><td>2 months</td></tr>
+<tr><td>9</td><td><strong>TRON ↔ Non-EVM Route Expansion</strong></td><td>Add more exotic routes: TRON↔Near, TRON↔Cosmos, TRON↔Aptos. Nobody else offers these.</td><td><span class="b b-w">CROSS-CHAIN</span></td><td>$100-200K</td><td>3-4 months</td></tr>
+<tr><td>10</td><td><strong>B2B API + Reporting Dashboard</strong></td><td>Enterprise API for OTC desks, payment processors. Auto-reports, compliance exports, webhook notifications.</td><td><span class="b b-c">INSTITUTIONAL</span></td><td>$100-200K</td><td>3 months</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>What TRON Recently Funded (Precedent to Reference)</h3>
+<table>
+<tr><th>Project</th><th>Amount</th><th>What They Built</th><th>Our Parallel</th></tr>
+<tr><td><strong>River</strong></td><td>$8M</td><td>Chain abstraction, satUSD stablecoin, integrates SUN pools + JustLend + WinkLink</td><td>We do chain abstraction for USDT — same category, proven product</td></tr>
+<tr><td><strong>Symbiosis</strong></td><td>Energy grant</td><td>Bridge with Energy fee subsidy for users</td><td>We can do same — ask for Energy grant to cover user fees</td></tr>
+<tr><td><strong>AEON Pay</strong></td><td>Integration</td><td>In-store crypto payments across 20M merchants in SEA</td><td>Deposit addresses = B2B payment rails</td></tr>
+<tr><td><strong>WalletConnect</strong></td><td>Integration</td><td>600+ wallets connected to TRON</td><td>Our widget SDK = similar distribution play</td></tr>
+<tr><td><strong>HackaTRON S7 winners</strong></td><td>$5-25K each</td><td>Bots, trackers, insurance, games</td><td>Our features are infrastructure-grade, not hackathon-scale</td></tr>
+</table>
+</div>
+</div>
+
+<div id="devfund-aligned" class="stab">
+<div class="card">
+<h3>TRON's 2026 Priorities vs Our Feature Roadmap</h3>
+<p style="font-size:.78em;color:var(--muted);margin-bottom:8px">Justin Sun's stated priorities (Consensus HK, DC Summit 2026) mapped to what we can build.</p>
+<table>
+<tr><th>TRON Priority</th><th>Their Vision</th><th>Our Feature</th><th>Funding Fit</th></tr>
+<tr><td><strong>AI Agentic Economy</strong></td><td>On-chain AI agents transacting autonomously via stablecoins</td><td>AI Agent Payment SDK — lets agents bridge USDT cross-chain to TRON</td><td><span class="b b-h">$1B AI Fund</span></td></tr>
+<tr><td><strong>Stablecoin Payment Rails</strong></td><td>Gas-free transfers, merchant payments, cross-border</td><td>Deposit addresses on TRON + gas-free bridge (Energy grant)</td><td><span class="b b-h">Ecosystem Fund</span></td></tr>
+<tr><td><strong>Cross-Chain / Chain Abstraction</strong></td><td>Seamless multi-chain experience (River $8M deal)</td><td>Route optimizer + widget SDK + non-EVM expansion</td><td><span class="b b-h">DAO Ventures</span></td></tr>
+<tr><td><strong>Developer Tooling</strong></td><td>SDKs, embedded wallets, APIs</td><td>TRON Widget SDK + B2B API + enhanced TRON SDK docs</td><td><span class="b b-w">TBL / Grants</span></td></tr>
+<tr><td><strong>RWA Tokenization</strong></td><td>Bridging physical assets on-chain</td><td>Bridge stablecoins → stUSDT (RWA yield) flow</td><td><span class="b b-c">AI Fund pillar</span></td></tr>
+<tr><td><strong>Institutional Access</strong></td><td>Anchorage, Mastercard, Zero Hash support</td><td>B2B reporting dashboard, enterprise API</td><td><span class="b b-c">DAO Ventures</span></td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>Recommended Pitch Strategy</h3>
+<div style="display:flex;flex-direction:column;gap:6px">
+<div style="padding:8px 12px;background:var(--primary-bg);border-radius:6px;font-size:.82em"><strong>Phase 1 — TBL + Energy Grant (Now):</strong> Apply to TBL for mentorship + visibility. Simultaneously request Energy grant to subsidize user bridge fees (Symbiosis precedent). Low ask, high signal.</div>
+<div style="padding:8px 12px;background:var(--primary-bg);border-radius:6px;font-size:.82em"><strong>Phase 2 — Ecosystem Fund ($100-250K):</strong> After TBL acceptance, apply for milestone-based grant. Milestones: deposit addresses on TRON, route optimizer, widget SDK. Paid in USDD.</div>
+<div style="padding:8px 12px;background:var(--primary-bg);border-radius:6px;font-size:.82em"><strong>Phase 3 — AI Fund ($200-500K):</strong> Build AI Agent Payment SDK. Position as "cross-chain payment rails for the agentic economy." No named competitors in this niche yet — first mover.</div>
+<div style="padding:8px 12px;background:var(--primary-bg);border-radius:6px;font-size:.82em"><strong>Phase 4 — DAO Ventures ($500K-2M):</strong> If previous phases succeed, pitch strategic investment for full TRON infrastructure suite (deposit addresses + widget + API + non-EVM expansion). Reference River's $8M as precedent.</div>
+</div>
+</div>
+</div>
+
+<div id="devfund-pitch" class="stab">
+<div class="card">
+<h3>One-Line Pitches per Feature (for Grant Applications)</h3>
+<table>
+<tr><th>Feature</th><th>Pitch Line</th></tr>
+<tr><td>AI Agent SDK</td><td>"Cross-chain payment rails for TRON's agentic economy — let AI agents move USDT from any chain to TRON autonomously."</td></tr>
+<tr><td>Deposit Addresses</td><td>"Generate unique TRON addresses that auto-collect cross-chain USDT — B2B payment infrastructure for merchants and OTC desks."</td></tr>
+<tr><td>Gas-Free Bridge</td><td>"Eliminate TRX gas friction for new TRON users — pay bridge fees in USDT, subsidized by Energy grant."</td></tr>
+<tr><td>Bridge + SunSwap</td><td>"One-click cross-chain to any TRC-20 token — bridge USDT and swap via SunSwap in a single transaction."</td></tr>
+<tr><td>Flow Dashboard</td><td>"Real-time public dashboard showing cross-chain stablecoin flows to TRON — proprietary data as ecosystem public good."</td></tr>
+<tr><td>Widget SDK</td><td>"One line of code = cross-chain USDT deposits in any TRON dApp. Embeddable bridge for the entire ecosystem."</td></tr>
+</table>
+</div>
+</div>
+</div>
+
+<!-- TRON FOUNDATION ONE-PAGER -->
+<div id="onepager" class="section">
+<h1>TRON Foundation <span>Pitch</span></h1>
+<p class="sub">One-pager to present to TRON Foundation / Justin Sun. Professional, no shilling — value proposition only.</p>
+
+<div class="card" style="border:2px solid var(--tron-red);background:#fff">
+<div style="text-align:center;margin-bottom:16px">
+<h2 style="font-size:1.3em;margin-bottom:2px">Allbridge Core × TRON DAO</h2>
+<p style="color:var(--muted);font-size:.85em">Cross-Chain Stablecoin Infrastructure Partnership Proposal</p>
+</div>
+
+<h3 style="margin-top:16px">Who We Are</h3>
+<p style="font-size:.83em">Allbridge Core is a non-custodial cross-chain stablecoin bridge connecting 17 blockchains, including 6 non-EVM chains. TRON is our largest chain — <strong>38% of total volume, $1B+ USDT bridged all-time</strong>. We've been building on TRON since 2021.</p>
+
+<h3 style="margin-top:16px">What We Propose</h3>
+
+<div style="margin-top:10px">
+<h4 style="font-size:.88em;color:var(--tron-red)">1. Twitter Content (1-2 posts/week from @Allbridge_io)</h4>
+<table style="margin-top:4px">
+<tr><th>Type</th><th>Frequency</th><th>Examples</th></tr>
+<tr><td>Data posts</td><td>Weekly</td><td>Cross-chain USDT flow data to TRON — volumes, top routes, average sizes. Proprietary data nobody else can share.</td></tr>
+<tr><td>Educational threads</td><td>Bi-weekly</td><td>TRON Energy system explainers, bridge comparison guides, MetaMask + TRON tutorials, "Bridge + Earn" DeFi flows.</td></tr>
+<tr><td>Ecosystem amplification</td><td>Weekly</td><td>Quote-tweet @trondao milestones with bridge data overlay. Amplify ecosystem news with cross-chain angle.</td></tr>
+</table>
+<p style="font-size:.78em;color:var(--muted);margin-top:4px">All posts tag @trondao. Tone: data-driven infrastructure partner, not promotional.</p>
+</div>
+
+<div style="margin-top:14px">
+<h4 style="font-size:.88em;color:var(--tron-red)">2. Blog Content (1-2 posts/month)</h4>
+<table style="margin-top:4px">
+<tr><th>Month</th><th>Article</th><th>SEO Target</th></tr>
+<tr><td>Apr</td><td>"How to Bridge USDT to TRON: Complete Guide (2026)"</td><td>"bridge USDT to Tron" — currently no top-5 result from TRON ecosystem</td></tr>
+<tr><td>May</td><td>"Cheapest Way to Bridge USDT to TRON — Fee Comparison"</td><td>"cheapest way to send USDT to Tron" — very weak competition</td></tr>
+<tr><td>May</td><td>"Cross-Chain Stablecoin Flow Report: TRON Q1 2026"</td><td>Original data, GEO optimization, media pickup potential</td></tr>
+<tr><td>Jun</td><td>"AI Agents and Cross-Chain Stablecoin Payments on TRON"</td><td>Aligned with $1B AI Fund narrative</td></tr>
+<tr><td>Jun</td><td>"The Full TRON DeFi Stack: Bridge → Swap → Lend → Earn"</td><td>Showcases JustLend, SunSwap, stUSDT, USDD 2.0</td></tr>
+<tr><td>Monthly</td><td>"TRON Stablecoin Flow Report" (recurring)</td><td>Proprietary data series — media and community cite it</td></tr>
+</table>
+<p style="font-size:.78em;color:var(--muted);margin-top:4px">All blog posts drive SEO traffic for TRON-related bridge queries. Currently Symbiosis and Defiway dominate — we can take 5+ top-5 rankings in 12 weeks.</p>
+</div>
+
+<div style="margin-top:14px">
+<h4 style="font-size:.88em;color:var(--tron-red)">3. Twitter Spaces / AMA (1-2x per month)</h4>
+<table style="margin-top:4px">
+<tr><th>#</th><th>Topic</th><th>Proposed Guests</th><th>Value to TRON</th></tr>
+<tr><td>1</td><td>"The TRON DeFi Stack: Bridge → Swap → Lend → Earn"</td><td>SunSwap, JustLend, @trondao</td><td>Showcases full DeFi ecosystem as connected flow</td></tr>
+<tr><td>2</td><td>"AI Agents + Stablecoin Payments on TRON"</td><td>TRON AI fund team, AEON Pay</td><td>Amplifies $1B AI Fund narrative with cross-chain angle</td></tr>
+<tr><td>3</td><td>"Cross-Chain Capital Flows: Where Is Money Moving?"</td><td>Dave Uhryniak, TRONSCAN</td><td>Proprietary data on which chains send capital to TRON</td></tr>
+<tr><td>4</td><td>"Institutional TRON: What Anchorage & Mastercard Mean"</td><td>TRON DAO ecosystem team</td><td>Positions TRON as institutional-ready with bridge infra</td></tr>
+<tr><td>5</td><td>"Bridging the Non-EVM Gap: TRON, Stellar, SUI"</td><td>Stellar, SUI ecosystem reps</td><td>Highlights TRON's unique cross-ecosystem connectivity</td></tr>
+<tr><td>6</td><td>"State of TRON Bridges: Routes, Fees & What's Next"</td><td>Open to other bridges</td><td>Community goodwill, positions TRON as multi-bridge ecosystem</td></tr>
+</table>
+<p style="font-size:.78em;color:var(--muted);margin-top:4px">Each Space generates: 1 takeaways thread, 1 forum recap post, 2-3 clip tweets. All content tags @trondao.</p>
+</div>
+
+<h3 style="margin-top:20px">What We Bring</h3>
+<div class="grid g3" style="margin-top:8px;margin-bottom:0">
+<div class="sc"><div class="l">Bridged to TRON</div><h2>$1B+</h2><div class="c">USDT all-time</div></div>
+<div class="sc"><div class="l">Share of Our Volume</div><h2>38%</h2><div class="c">Our #1 chain</div></div>
+<div class="sc"><div class="l">Connected Chains</div><h2>17</h2><div class="c">6 non-EVM (unique)</div></div>
+</div>
+</div>
+
+<div class="card" style="border:2px solid var(--tron-red)">
+<h3>What We're Asking For</h3>
+<table>
+<tr><th>Ask</th><th>Details</th><th>Precedent</th></tr>
+<tr><td><strong>TBL Acceptance</strong></td><td>Cross-Chain track. Mentorship + investor access + ecosystem positioning.</td><td>Squid/Coral and VIA Labs already in TBL</td></tr>
+<tr><td><strong>Energy Grant</strong></td><td>Subsidize bridge fees for users bridging TO TRON. Reduces friction for new TRON users.</td><td>Symbiosis received Energy grant</td></tr>
+<tr><td><strong>Co-Marketing</strong></td><td>Inclusion in @trondao tweets, "New Integrations" threads, ecosystem maps.</td><td>deBridge, Rhino.fi both featured</td></tr>
+<tr><td><strong>Spaces Co-Host</strong></td><td>Joint @trondao × @Allbridge_io Spaces. 1-2x/month on topics above.</td><td>ATB 27 precedent (March 2023)</td></tr>
+<tr><td><strong>Ecosystem Fund Grant</strong></td><td>$100-250K milestone-based grant for: deposit addresses on TRON, route optimizer, widget SDK.</td><td>River: $8M. $150M disbursed in H1 2025.</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>Combined 12-Week Plan Summary</h3>
+<table>
+<tr><th>Channel</th><th>Frequency</th><th>Monthly Output</th></tr>
+<tr><td>@Allbridge_io tweets (TRON)</td><td>1-2x/week</td><td>6-8 TRON tweets/month</td></tr>
+<tr><td>@avelykyy founder posts</td><td>1x/week</td><td>4 TRON posts/month</td></tr>
+<tr><td>Blog articles</td><td>1-2x/month</td><td>1-2 SEO-optimized articles</td></tr>
+<tr><td>Twitter Spaces</td><td>1-2x/month</td><td>1-2 Spaces with ecosystem projects</td></tr>
+<tr><td>TronDAO Forum</td><td>2x/month posts + engagement</td><td>2 posts + 10-15 replies</td></tr>
+<tr><td>Stablecoin Flow Reports</td><td>Monthly</td><td>1 data report with original metrics</td></tr>
+</table>
+<p style="font-size:.82em;margin-top:10px"><strong>Total monthly content output for TRON:</strong> 6-8 tweets + 4 founder posts + 1-2 blogs + 1-2 Spaces + 2 forum posts + 1 data report = <strong>15-19 pieces of TRON-focused content per month</strong>, all tagging @trondao, all data-driven.</p>
+</div>
+
+<div class="card">
+<h3>Contact</h3>
+<table>
+<tr><td><strong>Andriy Velykyy</strong> — Founder</td><td>@avelykyy</td></tr>
+<tr><td><strong>Allbridge Core</strong></td><td>@Allbridge_io</td></tr>
+<tr><td><strong>App</strong></td><td>core.allbridge.io</td></tr>
+<tr><td><strong>Docs</strong></td><td>docs-core.allbridge.io</td></tr>
+<tr><td><strong>SDK</strong></td><td>docs-core.allbridge.io/sdk/guides/tron</td></tr>
+</table>
+</div>
+</div>
+
+<!-- CALENDAR -->
+<div id="cal" class="section">
+<h1>12-Week <span>Calendar</span></h1>
+
+<div class="tl"><div class="w">Week 1</div><div class="ct"><strong>Apr 7-13:</strong> Apply TBL + Ecosystem Fund. Forum intro. "$1B milestone" tweet thread. @avelykyy founder thread. DM Dave Uhryniak. 2 Quora answers.</div></div>
+<div class="tl"><div class="w">Week 2</div><div class="ct"><strong>Apr 14-20:</strong> Publish "How to Bridge USDT to Tron" blog. Dev Talks guide on forum. DM @TronWeekly. 2 Quora answers.</div></div>
+<div class="tl"><div class="w">Week 3</div><div class="ct"><strong>Apr 21-27:</strong> Publish "Cheapest Way to Bridge" blog. AI narrative tweet. DM SunSwap for co-marketing. Forum data post.</div></div>
+<div class="tl"><div class="w">Week 4</div><div class="ct"><strong>Apr 28 - May 4:</strong> Publish "Best Tron Bridges" blog. Request WinkLink recap inclusion. Reddit r/defi posts. 2 Quora answers.</div></div>
+<div class="tl"><div class="w">Week 5</div><div class="ct"><strong>May 5-11:</strong> Create /bridge/tron landing page. "Institutions coming to Tron" tweet. DM JustLend for co-marketing.</div></div>
+<div class="tl"><div class="w">Week 6</div><div class="ct"><strong>May 12-18:</strong> Publish "Bridge + Earn Yield" blog. First Twitter Space (co-host with Tron DeFi project).</div></div>
+<div class="tl"><div class="w">Week 7</div><div class="ct"><strong>May 19-25:</strong> Publish "Stablecoin Flow Report" with original data. Pitch to @TronWeekly as exclusive.</div></div>
+<div class="tl"><div class="w">Week 8</div><div class="ct"><strong>May 26 - Jun 1:</strong> TBL acceptance announcement (if accepted). Generate 50+ route pages. Contact bridge listicle sites.</div></div>
+<div class="tl"><div class="w">Week 9</div><div class="ct"><strong>Jun 2-8:</strong> Publish "TRON Energy Explained" blog. Second Twitter Space. r/Tronix monthly data post.</div></div>
+<div class="tl"><div class="w">Week 10</div><div class="ct"><strong>Jun 9-15:</strong> Publish "AI Agents + Cross-Chain" blog. Correct misinformation on comparison sites.</div></div>
+<div class="tl"><div class="w">Week 11</div><div class="ct"><strong>Jun 16-22:</strong> Publish "Tron DeFi Stack" guide. Third Twitter Space. Generate remaining route pages.</div></div>
+<div class="tl"><div class="w">Week 12</div><div class="ct"><strong>Jun 23-29:</strong> Publish "Q2 Tron Bridge Report." Pitch to 5+ crypto media. Review and plan Q3.</div></div>
+
+<div class="card" style="margin-top:16px">
+<h3>Recurring Weekly Cadence</h3>
+<table>
+<tr><th>Day</th><th>@Allbridge_io</th><th>@avelykyy</th><th>Other</th></tr>
+<tr><td><strong>Mon</strong></td><td>Tron volume data + @trondao tag</td><td>-</td><td>-</td></tr>
+<tr><td><strong>Tue</strong></td><td>Educational thread (rotate topics)</td><td>-</td><td>Forum engagement (3-5 replies)</td></tr>
+<tr><td><strong>Wed</strong></td><td>QT/react to @trondao or ecosystem news</td><td>-</td><td>-</td></tr>
+<tr><td><strong>Thu</strong></td><td>-</td><td>Founder Tron take/thread</td><td>Quora answer</td></tr>
+<tr><td><strong>Fri</strong></td><td>Community/storytelling (whale, profit, exotic route)</td><td>-</td><td>Reddit engagement</td></tr>
+</table>
+</div>
+</div>
+
+<!-- PROGRESS -->
+<div id="track" class="section">
+<h1>Progress <span>Tracker</span></h1>
+<p class="sub">Check off items. Saves to your browser.</p>
+
+<div class="card">
+<h3>Overall</h3>
+<div class="pb"><div class="f" id="op" style="width:0%"></div></div>
+<p id="pt" style="font-size:.8em;color:var(--muted);text-align:center">0 of 0 completed</p>
+</div>
+
+<div class="card"><h3>Week 1 — Immediate</h3><div class="cl">
+<label><input type="checkbox" onchange="up()"> Apply to TRON Builders League (forum.trondao.org/c/tbl/51)</label>
+<label><input type="checkbox" onchange="up()"> Apply to TRON Ecosystem Fund (trondao.org/ecosystem-fund)</label>
+<label><input type="checkbox" onchange="up()"> Create forum account + post introduction</label>
+<label><input type="checkbox" onchange="up()"> Tweet "$1B+ USDT to Tron" milestone thread</label>
+<label><input type="checkbox" onchange="up()"> @avelykyy: "38% of volume is Tron" founder thread</label>
+<label><input type="checkbox" onchange="up()"> DM Dave Uhryniak (@UhryniakDave)</label>
+<label><input type="checkbox" onchange="up()"> Update @Allbridge_io bio to mention TRON</label>
+<label><input type="checkbox" onchange="up()"> Answer 2 Quora threads</label>
+</div></div>
+
+<div class="card"><h3>Week 2-4 — Content Launch</h3><div class="cl">
+<label><input type="checkbox" onchange="up()"> Publish "How to Bridge USDT to Tron" blog</label>
+<label><input type="checkbox" onchange="up()"> Publish "Cheapest Way to Bridge" blog</label>
+<label><input type="checkbox" onchange="up()"> Publish "Best Tron Bridges 2026" blog</label>
+<label><input type="checkbox" onchange="up()"> Post Dev Talks guide on forum</label>
+<label><input type="checkbox" onchange="up()"> DM @TronWeekly, SunSwap, WinkLink</label>
+<label><input type="checkbox" onchange="up()"> First Reddit posts (r/Tronix, r/defi)</label>
+<label><input type="checkbox" onchange="up()"> Answer 4 more Quora threads</label>
+</div></div>
+
+<div class="card"><h3>Month 2 — Partnerships & Pages</h3><div class="cl">
+<label><input type="checkbox" onchange="up()"> Create /bridge/tron landing page</label>
+<label><input type="checkbox" onchange="up()"> Generate 50+ programmatic route pages</label>
+<label><input type="checkbox" onchange="up()"> Publish "Bridge + Earn Yield" blog</label>
+<label><input type="checkbox" onchange="up()"> Publish "Stablecoin Flow Report" (original data)</label>
+<label><input type="checkbox" onchange="up()"> First Twitter Space (co-host with Tron project)</label>
+<label><input type="checkbox" onchange="up()"> DM JustLend for co-marketing</label>
+<label><input type="checkbox" onchange="up()"> Get listed on 3+ bridge comparison articles</label>
+</div></div>
+
+<div class="card"><h3>Month 3 — Scale</h3><div class="cl">
+<label><input type="checkbox" onchange="up()"> Publish "TRON Energy Explained" blog</label>
+<label><input type="checkbox" onchange="up()"> Publish "AI Agents + Cross-Chain" blog</label>
+<label><input type="checkbox" onchange="up()"> Publish "Q2 Tron Bridge Report"</label>
+<label><input type="checkbox" onchange="up()"> Host 2 more Twitter Spaces</label>
+<label><input type="checkbox" onchange="up()"> Generate remaining 150+ route pages</label>
+<label><input type="checkbox" onchange="up()"> Correct misinformation on comparison sites</label>
+<label><input type="checkbox" onchange="up()"> Answer remaining Quora threads (8 total)</label>
+</div></div>
+
+<div class="card"><h3>KPIs (12-Week Targets)</h3>
+<div class="kg">
+<div class="kc"><div class="kl">SEO Top-5 Rankings</div><div class="kv">0</div><div class="kt">&rarr; 5+</div><div class="kb"><div class="kf" style="width:0%"></div></div></div>
+<div class="kc"><div class="kl">@trondao Retweets</div><div class="kv">0</div><div class="kt">&rarr; 3+</div><div class="kb"><div class="kf" style="width:0%"></div></div></div>
+<div class="kc"><div class="kl">@justinsuntron Mention</div><div class="kv">0</div><div class="kt">&rarr; 1+</div><div class="kb"><div class="kf" style="width:0%"></div></div></div>
+<div class="kc"><div class="kl">TBL Status</div><div class="kv">Not Applied</div><div class="kt">&rarr; Accepted</div><div class="kb"><div class="kf" style="width:0%"></div></div></div>
+<div class="kc"><div class="kl">Twitter Spaces</div><div class="kv">0</div><div class="kt">&rarr; 3+</div><div class="kb"><div class="kf" style="width:0%"></div></div></div>
+<div class="kc"><div class="kl">Blog Posts (Tron)</div><div class="kv">1</div><div class="kt">&rarr; 8+</div><div class="kb"><div class="kf" style="width:12%"></div></div></div>
+<div class="kc"><div class="kl">Forum Posts</div><div class="kv">0</div><div class="kt">&rarr; 20+</div><div class="kb"><div class="kf" style="width:0%"></div></div></div>
+<div class="kc"><div class="kl">Tron Indexed Pages</div><div class="kv">~5</div><div class="kt">&rarr; 200+</div><div class="kb"><div class="kf" style="width:3%"></div></div></div>
+</div>
+</div>
+</div>
+
+</div>
+
+<script>
+function go(id,b){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.sidebar button').forEach(x=>x.classList.remove('active'));if(b)b.classList.add('active');if(innerWidth<769){document.querySelector('.sidebar').classList.remove('open');document.querySelector('.sidebar-overlay').classList.remove('open')}}
+function st(s,t,b){document.querySelectorAll('#'+s+' .stab').forEach(x=>x.classList.remove('active'));document.getElementById(s+'-'+t).classList.add('active');b.parentElement.querySelectorAll('button').forEach(x=>x.classList.remove('active'));b.classList.add('active')}
+function tgl(){document.querySelector('.sidebar').classList.toggle('open');document.querySelector('.sidebar-overlay').classList.toggle('open')}
+function cp(el){const t=el.querySelector('.t').innerText;navigator.clipboard.writeText(t).then(()=>{const b=el.querySelector('.cp');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',1200)})}
+function up(){const c=document.querySelectorAll('.cl input[type=checkbox]');let d=0;c.forEach(x=>{if(x.checked){d++;x.parentElement.classList.add('done')}else x.parentElement.classList.remove('done')});const p=Math.round(d/c.length*100);document.getElementById('op').style.width=p+'%';document.getElementById('pt').textContent=d+' of '+c.length+' completed ('+p+'%)';localStorage.setItem('tp',JSON.stringify(Array.from(c).map(x=>x.checked)))}
+function ld(){const s=JSON.parse(localStorage.getItem('tp')||'[]');const c=document.querySelectorAll('.cl input[type=checkbox]');s.forEach((v,i)=>{if(c[i]){c[i].checked=v;if(v)c[i].parentElement.classList.add('done')}});up()}
+ld();
+</script>
+</body>
+</html>
