@@ -283,18 +283,33 @@ def page_x_distribution():
     api_key = st.session_state.get("anthropic_key") or _get_secret("ANTHROPIC_API_KEY")
     serpapi_key = st.session_state.get("serpapi_key") or _get_secret("SERPAPI_KEY")
 
-    with st.sidebar:
-        st.subheader("X Distribution")
-        if not api_key:
-            api_key = st.text_input("Anthropic API Key", type="password", key="anthropic_key_input")
-            if api_key:
-                st.session_state["anthropic_key"] = api_key
-        if not serpapi_key:
-            serpapi_key = st.text_input("SerpAPI Key", type="password", key="serpapi_key_input")
-            if serpapi_key:
-                st.session_state["serpapi_key"] = serpapi_key
-        ref_url = st.text_input("Blog post URL to reference (optional)",
-                                placeholder="https://core.allbridge.io/blog/...")
+    # API keys directly on the page
+    if not api_key or not serpapi_key:
+        with st.container(border=True):
+            st.markdown("**API Keys**")
+            col_a, col_s = st.columns(2)
+            with col_s:
+                if not serpapi_key:
+                    serpapi_input = st.text_input("SerpAPI Key (for tweet search)", type="password",
+                                                  key="serpapi_key_input",
+                                                  placeholder="Paste your serpapi.com key")
+                    if serpapi_input:
+                        st.session_state["serpapi_key"] = serpapi_input
+                        serpapi_key = serpapi_input
+                else:
+                    st.success("SerpAPI key set")
+            with col_a:
+                if not api_key:
+                    api_input = st.text_input("Anthropic API Key (for reply generation)", type="password",
+                                              key="anthropic_key_input",
+                                              placeholder="sk-ant-...")
+                    if api_input:
+                        st.session_state["anthropic_key"] = api_input
+                        api_key = api_input
+                else:
+                    st.success("Anthropic key set")
+
+    ref_url = ""
 
     tab_search, tab_drafts, tab_tracker = st.tabs(["Find Tweets", "Draft Replies", "Queue"])
 
