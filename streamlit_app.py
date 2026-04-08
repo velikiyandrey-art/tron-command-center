@@ -8,16 +8,20 @@ st.set_page_config(page_title="Allbridge x TRON", page_icon="🔴", layout="wide
 
 # ── Page: Static Dashboard ──
 def page_dashboard():
-    import base64
     with open("tron-dashboard.html", "r") as f:
         html = f.read()
-    b64 = base64.b64encode(html.encode()).decode()
-    st.markdown(
-        f'<iframe src="data:text/html;base64,{b64}" '
-        f'style="position:fixed;top:0;left:0;width:100vw;height:100vh;border:none;z-index:9999;" '
-        f'></iframe>',
-        unsafe_allow_html=True,
-    )
+    # Inject the app's base URL for cross-iframe navigation links
+    try:
+        host = st.context.headers.get("Host", "")
+        if host:
+            proto = "https" if "streamlit" in host or "443" in host else "http"
+            base_url = f"{proto}://{host}/"
+        else:
+            base_url = "http://localhost:8501/"
+    except Exception:
+        base_url = "http://localhost:8501/"
+    html = html.replace("__APP_BASE_URL__", base_url)
+    st.components.v1.html(html, height=4000, scrolling=True)
 
 
 # ── X Distribution: State Persistence ──
