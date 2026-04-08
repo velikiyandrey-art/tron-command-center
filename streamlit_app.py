@@ -213,7 +213,14 @@ def _fetch_tweet(url: str) -> dict:
 def _generate_all_comments(fetched_posts, api_key, ref_url=""):
     from llm_client import generate_comment_reply
 
-    queue = []  # Clear previous queue — fresh generation each time
+    # Clear everything — fresh generation each time
+    queue = []
+    st.session_state["comment_queue"] = []
+    # Clear old version keys
+    for k in list(st.session_state.keys()):
+        if k.startswith("q_ver_") or k.startswith("q_comment_") or k.startswith("q_rev_"):
+            del st.session_state[k]
+    _save_distribution_state()
     progress = st.progress(0)
     status = st.empty()
 
