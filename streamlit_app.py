@@ -452,46 +452,94 @@ def page_x_distribution():
             st.session_state["comment_queue"] = queue
             _save_distribution_state()
 
-            # ── Export section ──
+            # ── Select & Export section ──
             st.divider()
-            export_rows = []
-            for item in queue:
-                export_rows.append({
-                    "Tweet URL": item["url"],
-                    "Tweet Text": item["title"],
-                    "Author": item.get("author", ""),
-                    "Our Reply": item["comment"],
-                    "Status": item["status"],
-                    "Keyword": item.get("keyword", ""),
-                    "Date": pd.Timestamp.now().strftime("%Y-%m-%d"),
-                })
-            export_df = pd.DataFrame(export_rows)
-            csv_data = export_df.to_csv(index=False)
 
-            col_exp1, col_exp2, col_exp3 = st.columns(3)
-            with col_exp1:
-                st.download_button("Export All CSV", data=csv_data,
-                                   file_name=f"x_replies_{pd.Timestamp.now().strftime('%Y%m%d')}.csv",
-                                   mime="text/csv")
-            with col_exp2:
-                draft_rows = [r for r in export_rows if r["Status"] == "draft"]
-                if draft_rows:
-                    st.download_button(f"Export {len(draft_rows)} Drafts",
-                                       data=pd.DataFrame(draft_rows).to_csv(index=False),
-                                       file_name=f"x_drafts_{pd.Timestamp.now().strftime('%Y%m%d')}.csv",
-                                       mime="text/csv")
-            with col_exp3:
-                gsheets_creds = st.session_state.get("gsheets_json") or _get_secret("gsheets")
-                if st.button("Push to Google Sheets", type="primary", disabled=not gsheets_creds):
-                    from sheets_client import push_comments
-                    try:
-                        n = push_comments(gsheets_creds, queue)
-                        if n:
-                            st.success(f"Pushed {n} new replies to Google Sheets")
-                        else:
-                            st.info("All replies already in sheet.")
-                    except Exception as e:
-                        st.error(f"Failed: {e}")
+            # Select all / deselect all
+            col_sa, col_da = st.columns(2)
+            with col_sa:
+                if st.button("Select All", key="q_select_all"):
+                    for i in range(len(queue)):
+                        st.session_state[f"q_sel_{i}"] = True
+                    st.rerun()
+            with col_da:
+                if st.button("Deselect All", key="q_deselect_all"):
+                    for i in range(len(queue)):
+                        st.session_state[f"q_sel_{i}"] = False
+                    st.rerun()
+
+            # Selection checkboxes
+            selected_indices = []
+            for i, item in enumerate(queue):
+                if st.checkbox(
+                    f"{item['title'][:60]} — {item.get('author', '')}",
+                    value=st.session_state.get(f"q_sel_{i}", True),  # Default: selected
+                    key=f"q_sel_{i}",
+                ):
+                    selected_indices.append(i)
+
+            selected_comments = [queue[i] for i in selected_indices]
+            st.caption(f"**{len(selected_comments)}** of {len(queue)} selected")
+
+            st.divider()
+
+            # Export buttons
+            col_csv, col_sheets = st.columns(2)
+
+            with col_csv:
+                if selected_comments:
+                    export_rows = []
+                    for item in selected_comments:
+                        export_rows.append({
+                            "Date": pd.Timestamp.now().strftime("%Y-%m-%d"),
+                            "Tweet URL": item["url"],
+                            "Tweet Text": item["title"],
+                            "Author": item.get("author", ""),
+                            "Our Reply": item["comment"],
+                            "Status": item["status"],
+                            "Keyword": item.get("keyword", ""),
+                        })
+                    csv_data = pd.DataFrame(export_rows).to_csv(index=False)
+                    st.download_button(
+                        f"Download CSV ({len(selected_comments)})",
+                        data=csv_data,
+                        file_name=f"x_replies_{pd.Timestamp.now().strftime('%Y%m%d')}.csv",
+                        mime="text/csv",
+                    )
+
+            with col_sheets:
+                # Google Sheets push
+                gsheets_creds = _get_secret("gsheets")
+                sheet_id = st.session_state.get("sheet_id") or _get_secret("GSHEET_ID")
+
+                if not sheet_id:
+                    sheet_url = st.text_input(
+                        "Google Sheet URL or ID",
+                        placeholder="https://docs.google.com/spreadsheets/d/xxx/edit",
+                        key="sheet_url_input",
+                    )
+                    if sheet_url:
+                        # Extract ID from URL or use as-is
+                        import re
+                        m = re.search(r'/d/([a-zA-Z0-9_-]+)', sheet_url)
+                        sheet_id = m.group(1) if m else sheet_url.strip()
+                        st.session_state["sheet_id"] = sheet_id
+
+                if sheet_id and gsheets_creds and selected_comments:
+                    if st.button(f"Push {len(selected_comments)} to Google Sheets", type="primary"):
+                        from sheets_client import push_comments
+                        try:
+                            n = push_comments(gsheets_creds, sheet_id, selected_comments)
+                            if n:
+                                st.success(f"Pushed {n} new replies to Google Sheets!")
+                            else:
+                                st.info("All selected replies already in sheet.")
+                        except Exception as e:
+                            st.error(f"Failed: {e}")
+                elif sheet_id and not gsheets_creds:
+                    st.warning("Add Google service account JSON to Streamlit secrets as `gsheets`")
+                elif not sheet_id:
+                    st.info("Paste your Google Sheet URL above to enable push")
 
 
 # ── Routing via query params ──

@@ -4,10 +4,9 @@ import gspread
 from google.oauth2.service_account import Credentials
 
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-SHEET_ID = "YOUR_GOOGLE_SHEET_ID_HERE"  # Replace with your actual sheet ID
 
 
-def _get_client(creds_json: str) -> gspread.Client:
+def _get_client(creds_json) -> gspread.Client:
     if isinstance(creds_json, str):
         creds_info = json.loads(creds_json)
     else:
@@ -16,14 +15,13 @@ def _get_client(creds_json: str) -> gspread.Client:
     return gspread.authorize(creds)
 
 
-def push_comments(creds_json: str, comments: list[dict], sheet_name: str = "X Replies") -> int:
+def push_comments(creds_json, sheet_id: str, comments: list[dict], sheet_name: str = "X Replies") -> int:
     """
-    Append NEW comments to Google Sheet (append-only, never erases).
-    Creates sheet tab if missing. Skips duplicates by URL.
-    Returns number of NEW rows added.
+    Append comments to Google Sheet. Creates tab + header if missing.
+    Skips duplicates by URL. Returns number of NEW rows added.
     """
     gc = _get_client(creds_json)
-    spreadsheet = gc.open_by_key(SHEET_ID)
+    spreadsheet = gc.open_by_key(sheet_id)
 
     try:
         ws = spreadsheet.worksheet(sheet_name)
