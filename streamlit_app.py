@@ -213,14 +213,11 @@ def _fetch_tweet(url: str) -> dict:
 def _generate_all_comments(fetched_posts, api_key, ref_url=""):
     from llm_client import generate_comment_reply
 
-    queue = st.session_state.get("comment_queue", [])
+    queue = []  # Clear previous queue — fresh generation each time
     progress = st.progress(0)
     status = st.empty()
 
     for i, post in enumerate(fetched_posts):
-        if any(q["url"] == post["url"] for q in queue):
-            progress.progress((i + 1) / len(fetched_posts))
-            continue
 
         status.text(f"Generating reply for: {post['title'][:50]}...")
         try:
@@ -418,8 +415,8 @@ def page_x_distribution():
                     else:
                         st.caption(f"{char_count}/280 characters")
 
-                    rev_text = st.text_input("Revise:", placeholder="shorter, more data, add @trondao",
-                                             key=f"q_rev_{i}", label_visibility="collapsed")
+                    rev_text = st.text_input("Revision instructions:", placeholder="make it shorter and funnier",
+                                             key=f"q_rev_{i}")
 
                     col1, col2, col3, col4 = st.columns(4)
                     with col1:
