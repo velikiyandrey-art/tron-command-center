@@ -263,8 +263,14 @@ def page_x_distribution():
 
     _load_distribution_state()
 
-    api_key = st.session_state.get("anthropic_key") or st.secrets.get("ANTHROPIC_API_KEY", "")
-    serpapi_key = st.session_state.get("serpapi_key") or st.secrets.get("SERPAPI_KEY", "")
+    def _get_secret(key, default=""):
+        try:
+            return st.secrets.get(key, default)
+        except Exception:
+            return default
+
+    api_key = st.session_state.get("anthropic_key") or _get_secret("ANTHROPIC_API_KEY")
+    serpapi_key = st.session_state.get("serpapi_key") or _get_secret("SERPAPI_KEY")
 
     with st.sidebar:
         st.subheader("X Distribution")
@@ -445,7 +451,7 @@ def page_x_distribution():
                                        file_name=f"x_drafts_{pd.Timestamp.now().strftime('%Y%m%d')}.csv",
                                        mime="text/csv")
             with col_exp3:
-                gsheets_creds = st.session_state.get("gsheets_json") or st.secrets.get("gsheets", "")
+                gsheets_creds = st.session_state.get("gsheets_json") or _get_secret("gsheets")
                 if st.button("Push to Google Sheets", type="primary", disabled=not gsheets_creds):
                     from sheets_client import push_comments
                     try:
