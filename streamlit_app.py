@@ -508,38 +508,29 @@ def page_x_distribution():
                     )
 
             with col_sheets:
-                # Google Sheets push
-                gsheets_creds = _get_secret("gsheets")
-                sheet_id = st.session_state.get("sheet_id") or _get_secret("GSHEET_ID")
+                # Google Sheets push via Apps Script webhook
+                webhook_url = st.session_state.get("sheets_webhook") or _get_secret("SHEETS_WEBHOOK")
 
-                if not sheet_id:
-                    sheet_url = st.text_input(
-                        "Google Sheet URL or ID",
-                        placeholder="https://docs.google.com/spreadsheets/d/xxx/edit",
-                        key="sheet_url_input",
+                if not webhook_url:
+                    webhook_input = st.text_input(
+                        "Google Sheets webhook URL",
+                        placeholder="https://script.google.com/macros/s/.../exec",
+                        key="sheets_webhook_input",
                     )
-                    if sheet_url:
-                        # Extract ID from URL or use as-is
-                        import re
-                        m = re.search(r'/d/([a-zA-Z0-9_-]+)', sheet_url)
-                        sheet_id = m.group(1) if m else sheet_url.strip()
-                        st.session_state["sheet_id"] = sheet_id
+                    if webhook_input:
+                        st.session_state["sheets_webhook"] = webhook_input
+                        webhook_url = webhook_input
 
-                if sheet_id and gsheets_creds and selected_comments:
+                if webhook_url and selected_comments:
                     if st.button(f"Push {len(selected_comments)} to Google Sheets", type="primary"):
                         from sheets_client import push_comments
                         try:
-                            n = push_comments(gsheets_creds, sheet_id, selected_comments)
-                            if n:
-                                st.success(f"Pushed {n} new replies to Google Sheets!")
-                            else:
-                                st.info("All selected replies already in sheet.")
+                            n = push_comments(webhook_url, selected_comments)
+                            st.success(f"Pushed {n} replies to Google Sheets!")
                         except Exception as e:
                             st.error(f"Failed: {e}")
-                elif sheet_id and not gsheets_creds:
-                    st.warning("Add Google service account JSON to Streamlit secrets as `gsheets`")
-                elif not sheet_id:
-                    st.info("Paste your Google Sheet URL above to enable push")
+                elif not webhook_url:
+                    st.info("Add webhook URL to enable push")
 
 
 # ── Routing via query params ──
