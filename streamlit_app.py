@@ -4,13 +4,20 @@ import os
 import re
 import pandas as pd
 
-st.set_page_config(page_title="Allbridge x TRON", page_icon="🔴", layout="wide")
+st.set_page_config(page_title="Allbridge x TRON", page_icon="🔴", layout="wide", initial_sidebar_state="collapsed")
 
 # ── Page: Static Dashboard ──
 def page_dashboard():
+    import base64
     with open("tron-dashboard.html", "r") as f:
         html = f.read()
-    st.components.v1.html(html, height=4000, scrolling=True)
+    b64 = base64.b64encode(html.encode()).decode()
+    st.markdown(
+        f'<iframe src="data:text/html;base64,{b64}" '
+        f'style="position:fixed;top:0;left:0;width:100vw;height:100vh;border:none;z-index:9999;" '
+        f'></iframe>',
+        unsafe_allow_html=True,
+    )
 
 
 # ── X Distribution: State Persistence ──
@@ -464,15 +471,31 @@ def page_x_distribution():
                         st.error(f"Failed: {e}")
 
 
-# ── Navigation ──
-pages = {
-    "STRATEGY": [
-        st.Page(page_dashboard, title="Command Center", icon="📊"),
-    ],
-    "OUTREACH": [
-        st.Page(page_x_distribution, title="X Distribution", icon="🐦"),
-    ],
-}
+# ── Routing via query params ──
+page = st.query_params.get("page", "dashboard")
 
-pg = st.navigation(pages)
-pg.run()
+if page == "x_distribution":
+    # Hide Streamlit sidebar and header chrome
+    st.markdown("""<style>
+        [data-testid="stSidebar"] { display: none !important; }
+        [data-testid="collapsedControl"] { display: none !important; }
+        header[data-testid="stHeader"] { display: none !important; }
+    </style>""", unsafe_allow_html=True)
+    if st.button("← Back to Command Center"):
+        st.query_params.clear()
+        st.rerun()
+    page_x_distribution()
+else:
+    # Hide Streamlit sidebar on dashboard — HTML has its own
+    st.markdown("""<style>
+        [data-testid="stSidebar"] { display: none !important; }
+        [data-testid="collapsedControl"] { display: none !important; }
+        header[data-testid="stHeader"] { display: none !important; }
+        .stMainBlockContainer { padding: 0 !important; max-width: 100vw !important; width: 100vw !important; }
+        .stMain { padding: 0 !important; }
+        [data-testid="stAppViewBlockContainer"] { padding: 0 !important; max-width: 100vw !important; }
+        [data-testid="stVerticalBlockBorderWrapper"] { width: 100vw !important; max-width: 100vw !important; }
+        [data-testid="element-container"] { width: 100vw !important; max-width: 100vw !important; }
+        iframe[title="st.iframe"] { width: 100vw !important; min-width: 100vw !important; overflow: visible !important; }
+    </style>""", unsafe_allow_html=True)
+    page_dashboard()
